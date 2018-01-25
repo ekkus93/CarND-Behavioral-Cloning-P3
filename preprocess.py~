@@ -1,0 +1,35 @@
+import numpy as np
+import cv2
+from skimage import exposure
+
+def crop_images(img, x0=0, y0=0, x1=None, y1=None):
+    if x1 is None:
+        x1 = img.shape[1]
+        
+    if y1 is None:
+        y1 = img.shape[0]
+    
+    return img[y0:y1, x0:x1, :]
+
+def apply_histogram_equalization(img):
+    gray_image = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    equalized_image = exposure.equalize_adapthist(gray_image)
+    
+    return (255.0*equalized_image).astype(np.uint8)
+
+def normalize(img):
+    return img / 255.0 - 0.5
+
+def preprocess_image(img, x0=0, y0=48, x1=None, y1=112):
+    _img = crop_images(img, x0, y0, x1, y1)
+    
+    _img = apply_histogram_equalization(_img)
+    
+    _img = normalize(_img)
+    
+    return _img
+
+def preprocess_images(X, x0=0, y0=48, x1=None, y1=112):
+    _X = np.array([preprocess_image(X[i]) for i in range(X.shape[0])])
+
+    return _X.reshape(list(_X.shape) + [1])
