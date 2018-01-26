@@ -75,7 +75,13 @@ def main():
     X_test, y_test = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112)
     
     # ## Model
-    model = make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay = 1e-4)
+    input_shape = (64, 320, 3)
+    p = 0.5
+    weight_decay = 1e-4
+    alpha = 0.3
+    
+    model = make_model(input_shape = input_shape, p = p, weight_decay = weight_decay,
+                       alpha =alpha)
     print(model.summary())
     print()
     
@@ -83,8 +89,8 @@ def main():
     plot_model(model, to_file=model_graph_file)
 
     # ## Train Model (primary data)
-    epochs=10
-    lr = 0.00001
+    epochs=20
+    lr = 0.0001
     weight_decay = 1e-4
     verbose = 2
     
@@ -94,7 +100,7 @@ def main():
     test_loss = model.evaluate(X_test, y_test, verbose=verbose)
     print("test loss: %3f" % test_loss)
 
-    model.save('%s/model.h5'%data_dir)
+    model.save('%s/model.h5' % data_dir)
     print("=======================================================")
     print()
 
