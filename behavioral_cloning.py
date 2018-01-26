@@ -117,17 +117,10 @@ def make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay=1e-4):
     model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu',
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-
-    # block 4
-    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation='relu',
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation='relu',
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
     
     model.add(Flatten())          
  
-    model.add(Dense(64, activation=None, kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(Dense(128, activation=None, kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(Dropout(p))
     model.add(Activation('relu'))
     model.add(Dense(1))
