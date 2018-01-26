@@ -91,15 +91,18 @@ def main():
     """
     
     # ## Model
-    model = make_model(input_shape = (64, 320, 3), p = 0.5)
+    model = make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay = 1e-4)
 
     model_graph_file = '%s/model.png' % data_dir
     plot_model(model, to_file=model_graph_file)
 
     # ## Train Model (primary data)
     print("### Primary Model")
-    epochs=20
-    model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val, epochs=epochs, workers=workers)
+    epochs=10
+    lr = 0.0001
+    weight_decay = 1e-4
+    model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
+                        lr=lr, epochs=epochs, workers=workers)
 
     test_loss = model.evaluate(X_test, y_test)
     print("test loss: %3f" % test_loss)
@@ -116,8 +119,9 @@ def main():
     model_file = '%s/model.h5' % data_dir
 
     print("### Fine Tuned Model with Extra Data")
-    epochs=20
-    model2 = fine_tune_model_train(extra_data_dir, model_file, X_val, y_val, epochs=epochs, workers=workers)
+    epochs=10
+    lr = 0.0001
+    model2 = fine_tune_model_train(extra_data_dir, model_file, X_val, y_val, lr=lr, epochs=epochs, workers=workers)
 
     test_loss2 = model2.evaluate(X_test, y_test)
     print("test loss: %3f" % test_loss)

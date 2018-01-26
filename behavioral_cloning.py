@@ -8,6 +8,7 @@ from keras.optimizers import Adam
 from keras import backend as K
 from keras.models import load_model
 from keras.utils import plot_model
+from keras import regularizers
 
 import pandas as pd
 import numpy as np
@@ -92,28 +93,41 @@ def split_train_test(img_steering_pd, train_perc=0.7, val_perc=0.2):
     
     return train_pd, val_pd, test_pd
 
-def make_model(input_shape = (64, 320, 3), p = 0.5):
+def make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay=1e-4):
     model = Sequential()
 
     # block 1
     model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', 
-                     activation='relu', input_shape=input_shape))
-    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation='relu'))
+                     activation='relu', input_shape=input_shape,
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation='relu',
+                     kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
 
     # block 2
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation='relu'))
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation='relu'))
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation='relu',
+              kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation='relu',
+              kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
 
     # block 3
-    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu'))
-    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu'))
+    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu',
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu',
+                     kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-          
+
+    # block 4
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation='relu',
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation='relu',
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
+    
     model.add(Flatten())          
  
-    model.add(Dense(64, activation=None))
+    model.add(Dense(64, activation=None, kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(Dropout(p))
     model.add(Activation('relu'))
     model.add(Dense(1))
