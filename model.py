@@ -73,61 +73,30 @@ def main():
 
     X_val, y_val = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112)
     X_test, y_test = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112)
-
-    """
-    ### ***Subset data for debugging***
-    subset_factor = 0.05
-    X_train_subset_cnt = int(subset_factor*len(X_train_files))
-    X_train_files = X_train_files[:X_train_subset_cnt]
-    y_train = y_train[:X_train_subset_cnt]
-
-    X_val_subset_cnt = int(subset_factor*X_val.shape[0])
-    X_val = X_val[:X_val_subset_cnt]
-    y_val = y_val[:X_val_subset_cnt]
-
-    X_test_subset_cnt = int(subset_factor*X_test.shape[0])
-    X_test = X_test[:X_test_subset_cnt]
-    y_test = y_val[:X_test_subset_cnt]
-    """
     
     # ## Model
     model = make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay = 1e-4)
-
+    print(model.summary())
+    print()
+    
     model_graph_file = '%s/model.png' % data_dir
     plot_model(model, to_file=model_graph_file)
 
     # ## Train Model (primary data)
-    print("### Primary Model")
     epochs=10
-    lr = 0.0001
+    lr = 0.00001
     weight_decay = 1e-4
+    verbose = 2
+    
     model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
-                        lr=lr, epochs=epochs, workers=workers)
+                        lr=lr, epochs=epochs, workers=workers, verbose=verbose)
 
-    test_loss = model.evaluate(X_test, y_test)
+    test_loss = model.evaluate(X_test, y_test, verbose=verbose)
     print("test loss: %3f" % test_loss)
 
     model.save('%s/model.h5'%data_dir)
     print("=======================================================")
     print()
-
-    # ## Fine tune model with extra data
-    # The first model has problems right after the bridge.  It doesn't bank left hard enough and it ends up driving off
-    # the road. Train the model with extra data from just that section of the track. The learning rate of 0.0001 will be
-    # used, same as the first model.  All of the extra data will be used for training. The validation data from the first
-    # model will be reused.
-    model_file = '%s/model.h5' % data_dir
-
-    print("### Fine Tuned Model with Extra Data")
-    epochs=10
-    lr = 0.0001
-    model2 = fine_tune_model_train(extra_data_dir, model_file, X_val, y_val, lr=lr, epochs=epochs, workers=workers)
-
-    test_loss2 = model2.evaluate(X_test, y_test)
-    print("test loss: %3f" % test_loss)
-
-    model2_file = '%s/model.h5' % extra_data_dir
-    model2.save(model2_file)
 
 if __name__ == "__main__":
     main()

@@ -3,7 +3,7 @@ import tensorflow as tf
 import keras
 
 from keras.models import Sequential
-from keras.layers import Activation, Flatten, Dense, Lambda, Conv2D, MaxPooling2D, Dropout
+from keras.layers import Activation, Flatten, Dense, Lambda, Conv2D, MaxPooling2D, Dropout, BatchNormalization
 from keras.optimizers import Adam
 from keras import backend as K
 from keras.models import load_model
@@ -98,31 +98,59 @@ def make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay=1e-4):
 
     # block 1
     model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', 
-                     activation='relu', input_shape=input_shape,
+                     activation=None, input_shape=input_shape,
                      kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation='relu',
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))
+    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-
+    model.add(Dropout(p))
+    
     # block 2
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation='relu',
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
               kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation='relu',
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))    
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
               kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-
+    model.add(Dropout(p))
+    
     # block 3
-    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu',
+    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation='relu',
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))    
+    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
+    model.add(Dropout(p))
+    
+    # block 4
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))    
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))    
+    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
+    model.add(Dropout(p))
     
     model.add(Flatten())          
  
     model.add(Dense(128, activation=None, kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(BatchNormalization())
+    model.add(Activation('relu'))    
     model.add(Dropout(p))
-    model.add(Activation('relu'))
     model.add(Dense(1))
     
     return model
@@ -151,7 +179,7 @@ def image_gen(X_files, y, batch_size, img_dir, y0=48, y1=112):
             yield curr_X, curr_y
 
 def train_model(model, X_train_files, y_train, img_dir, X_val, y_val, 
-                batch_size=32, lr=0.0001, epochs=10, workers=1):
+                batch_size=32, lr=0.0001, epochs=10, workers=1, verbose=0):
     optimizer = Adam(lr=lr)
     model.compile(loss='mse', optimizer=optimizer)
 
@@ -160,30 +188,6 @@ def train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
     steps_per_epoch = int(len(X_train_files)/batch_size)
     model.fit_generator(train_gen, validation_data=(X_val, y_val), 
                         steps_per_epoch=steps_per_epoch,
-                        epochs=epochs, workers=workers)   
+                        epochs=epochs, workers=workers, verbose=verbose)   
     
     return model
-
-def fine_tune_model_train(fine_tune_data_dir, model_file, X_val, y_val,
-                           lr=0.0001, batch_size= 32, epochs=10, workers=1):
-    # data
-    train_pd = load_data(fine_tune_data_dir)
-    fine_tune_img_dir = '%s/IMG' % fine_tune_data_dir
-    
-    X_train_files = train_pd['center_img'].tolist()
-    y_train = np.array(train_pd['steering_angle'])
-    train_gen = image_gen(X_train_files, y_train, batch_size, fine_tune_img_dir)
-    
-    # model
-    model = load_model(model_file)
-    
-    optimizer = Adam(lr=lr)
-    model.compile(loss='mse', optimizer=optimizer)
-
-    steps_per_epoch = int(len(X_train_files)/batch_size)
-    model.fit_generator(train_gen, validation_data=(X_val, y_val), 
-                        steps_per_epoch=steps_per_epoch,
-                        epochs=epochs, workers=workers)
-    
-    return model
-
