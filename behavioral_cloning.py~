@@ -1,0 +1,26 @@
+# ***Using Tensorflow 1.4.0 and Keras 2.1.2*** 
+import tensorflow as tf
+import keras
+
+from keras.models import Sequential
+from keras.layers import Activation, Flatten, Dense, Lambda, Conv2D, MaxPooling2D, Dropout
+from keras.optimizers import Adam
+from keras import backend as K
+from keras.models import load_model
+from keras.utils import plot_model
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+get_ipython().run_line_magic('matplotlib', 'inline')
+from matplotlib.pyplot import imread
+
+from random import shuffle, random
+import cv2
+from skimage import exposure
+from tqdm import tqdm
+from sklearn.utils import shuffle as shuffle_X_y
+from math import pi, cos, sin, degrees, radians, atan2, sqrt
+
+from preprocess import *
+
