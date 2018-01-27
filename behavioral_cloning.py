@@ -99,60 +99,30 @@ def make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay=1e-4, alpha=0.3
     model = Sequential()
 
     # block 1
-    model.add(Conv2D(4, (3, 3), strides=(1, 1), padding='same', 
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', 
                      activation=None, input_shape=input_shape,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Conv2D(4, (3, 3), strides=(1, 1), padding='same', activation=None,
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
               kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    
+
     # block 2
-    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation=None,
+    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))        
-    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    #model.add(Dropout(p))
-
-    # block 3
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    #model.add(Dropout(p))
-
-    # block 4
-    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
     model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
     #model.add(Dropout(p))
-
-    # block 5
+    
+    # block 
     model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
+    model.add(LeakyReLU(alpha=alpha))        
     model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    #model.add(Dropout(p))
-
-    # block 5
-    model.add(Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    model.add(Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
