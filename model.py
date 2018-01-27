@@ -97,7 +97,7 @@ def main():
     # ## Model
     input_shape = (64, 320, 3)
     p = 0.5
-    weight_decay = 1e-2
+    weight_decay = 1e-5
     alpha = 0.01
     epochs=5
     lr = 0.0001
