@@ -80,12 +80,12 @@ _________________________________________________________________
 None
 
 Epoch 1/5
- - 4s - loss: 0.1246 - val_loss: 0.1317
+ - 4s - loss: 0.1458 - val_loss: 0.1339
 Epoch 2/5
- - 1s - loss: 0.1209 - val_loss: 0.1203
+ - 1s - loss: 0.1273 - val_loss: 0.1233
 Epoch 3/5
- - 1s - loss: 0.1126 - val_loss: 0.1102
+ - 1s - loss: 0.1035 - val_loss: 0.1159
 Epoch 4/5
- - 1s - loss: 0.1125 - val_loss: 0.1005
+ - 1s - loss: 0.1211 - val_loss: 0.1055
 Epoch 5/5
- - 1s - loss: 0.1055 - val_loss: 0.0915
+ - 1s - loss: 0.1031 - val_loss: 0.0979

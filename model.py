@@ -56,17 +56,21 @@ def preprocess_Xy_data(Xy_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop
 
     return _X, _y
 
-def predict_from_files(model, img_dir, X_files, batch_size=32):
+def predict_from_files(model, img_dir, X_files, batch_size=32,
+                       crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112):
     y_hat_arr = []
 
     for i in range(0, len(X_files), batch_size):
-        curr_X_files = X_files[i, min(i+batch_size, len(X_files))]
-        curr_x = read_imgs(img_dir, curr_X_files)
-        curr_y_hat = model.predict(curr_X)
+        curr_X_files = [X_files[j] for j in range(i, min(i+batch_size, len(X_files)))]
+
+        curr_X = read_imgs(img_dir, curr_X_files)
+        curr_X = preprocess_images(curr_X, x0=crop_x0, y0=crop_y0, x1=crop_x1, y1=crop_y1)
+        
+        curr_y_hat = model.predict(curr_X, batch_size=curr_X.shape[0])
         y_hat_arr.append(curr_y_hat)
 
     y_hat =  np.concatenate(y_hat_arr, axis=0)
-    assert y_hat.shape[0] == X.shape[0]
+    assert y_hat.shape[0] == len(X_files)
 
     return y_hat
 
@@ -76,7 +80,7 @@ def filter_incorrect(model, X_files, y, img_dir, perc_err=0.05, batch_size=32):
     err_np = np.abs(y-y_hat) <= perc_err
     keep_idxs = [i for i in range(err_np.shape[0]) if err_np[i] <= perc_err]
 
-    return X_files[keep_idxs], y[keep_idxs]
+    return [X_files[i] for i in keep_idxs], y[keep_idxs]
 
 def main():
     driving_log_pd = load_data(data_dir)
