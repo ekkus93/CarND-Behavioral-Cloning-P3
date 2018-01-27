@@ -204,6 +204,7 @@ def train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
     steps_per_epoch = int(len(X_train_files)/batch_size)
     model.fit_generator(train_gen, validation_data=(X_val, y_val), 
                         steps_per_epoch=steps_per_epoch,
-                        epochs=epochs, workers=workers, verbose=verbose)   
+                        epochs=epochs, workers=workers, verbose=verbose,
+                        use_multiprocessing=True)   
     
     return model
