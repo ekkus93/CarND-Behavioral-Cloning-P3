@@ -77,8 +77,11 @@ def predict_from_files(model, img_dir, X_files, batch_size=32,
 def filter_incorrect(model, X_files, y, img_dir, perc_err=0.05, batch_size=32):
     y_hat = predict_from_files(model, img_dir, X_files)
 
-    err_np = np.abs(y-y_hat) <= perc_err
-    keep_idxs = [i for i in range(err_np.shape[0]) if err_np[i] <= perc_err]
+    keep_idxs = []
+
+    for i in range(y.shape[0]):
+        if np.abs(y[i]-y_hat[i]) > perc_err:
+            keep_idxs.append(i)
 
     return [X_files[i] for i in keep_idxs], y[keep_idxs]
 
@@ -101,14 +104,6 @@ def main():
 
     X_val, y_val = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112)
     X_test, y_test = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112)
-
-    cnt = int(0.1*len(X_train_files))
-    X_train_files = X_train_files[:cnt]
-    y_train = y_train[:cnt]
-
-    cnt = int(0.1*X_val.shape[0])
-    X_val = X_val[:cnt]
-    y_val = y_val[:cnt]    
     
     # ## Model
     input_shape = (64, 320, 3)
@@ -126,7 +121,7 @@ def main():
 
     # ## Train Model (primary data)
     epochs=5
-    lr = 0.001
+    lr = 0.0001
     weight_decay = 1e-4
     verbose = 2
 
@@ -141,12 +136,14 @@ def main():
     for i in range(5):
         _X_train_files, _y_train = filter_incorrect(model, X_train_files, y_train, img_dir, perc_err=0.05,
                                                     batch_size=batch_size)
-        print("percent not learned: %3f" % _y_train.shape[0]/y_train.shape[0])
+        not_learned_perc = _y_train.shape[0]/y_train.shape[0]
+        print("percent not learned: %.3f" % not_learned_perc)
         
-        cnt = int(0.1*len(_X_train_files))
+        cnt = int(0.25*len(_X_train_files))
         _X_train_files = _X_train_files[:cnt]
         _y_train = _y_train[:cnt]
-    
+
+        epochs=10
         model = train_model(model, _X_train_files, _y_train, img_dir, X_val, y_val,
                             lr=lr, epochs=epochs, workers=workers, verbose=verbose)
 

@@ -196,12 +196,21 @@ def image_gen(X_files, y, batch_size, img_dir, y0=48, y1=112):
 
 def train_model(model, X_train_files, y_train, img_dir, X_val, y_val, 
                 batch_size=32, lr=0.0001, epochs=10, workers=1, verbose=0):
+    assert len(X_train_files) == y_train.shape[0]
+    assert len(X_train_files) > 0
+
+    print(len(X_train_files))
     optimizer = Adam(lr=lr)
     model.compile(loss='mse', optimizer=optimizer)
 
     train_gen = image_gen(X_train_files, y_train, batch_size, img_dir)
 
-    steps_per_epoch = int(len(X_train_files)/batch_size)
+    if len(X_train_files) < batch_size:
+        steps_per_epoch = 1
+    else:
+        steps_per_epoch = int(len(X_train_files)/batch_size)
+    assert steps_per_epoch > 0
+    
     model.fit_generator(train_gen, validation_data=(X_val, y_val), 
                         steps_per_epoch=steps_per_epoch,
                         epochs=epochs, workers=workers, verbose=verbose,
