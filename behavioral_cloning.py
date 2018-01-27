@@ -99,16 +99,27 @@ def make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay=1e-4, alpha=0.3
     model = Sequential()
 
     # block 1
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', 
+    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', 
                      activation=None, input_shape=input_shape,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
+    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation=None,
               kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
 
     # block 2
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(LeakyReLU(alpha=alpha))        
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(LeakyReLU(alpha=alpha))    
+    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
+    #model.add(Dropout(p))
+
+    """
+    # block 3 
     model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))        
@@ -117,8 +128,8 @@ def make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay=1e-4, alpha=0.3
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
     #model.add(Dropout(p))
-    
-    # block 
+
+    # block 4
     model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))        
@@ -126,17 +137,26 @@ def make_model(input_shape = (64, 320, 3), p = 0.5, weight_decay=1e-4, alpha=0.3
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    #model.add(Dropout(p))
-    
+    model.add(Dropout(p))
+
+    # block 4
+    model.add(Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation=None,
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(LeakyReLU(alpha=alpha))        
+    model.add(Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation=None,
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(LeakyReLU(alpha=alpha))    
+    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
+    """
+
+    model.add(Dropout(p))    
     model.add(Flatten())          
  
     model.add(Dense(320, activation=None, kernel_regularizer=regularizers.l2(weight_decay)))
+    #model.add(BatchNormalization())
     model.add(LeakyReLU(alpha=alpha))
 
-    model.add(Dense(160, activation=None, kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    
-    #model.add(Dropout(p))
+    model.add(Dropout(p))
     model.add(Dense(1))
     
     return model
@@ -169,7 +189,6 @@ def train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
     assert len(X_train_files) == y_train.shape[0]
     assert len(X_train_files) > 0
 
-    print(len(X_train_files))
     optimizer = Adam(lr=lr)
     model.compile(loss='mse', optimizer=optimizer)
 

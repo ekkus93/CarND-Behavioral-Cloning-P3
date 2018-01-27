@@ -95,16 +95,22 @@ def main():
     X_test, y_test = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112)
     
     # ## Model
+    model_dir = '%s/model.h5' % data_dir
+    
     input_shape = (64, 320, 3)
-    p = 0.5
-    weight_decay = 1e-7
-    alpha = 0.0001
-    epochs=5
+    p = 0.1
+    weight_decay = 1e-9
+    alpha = 0.00001
+    epochs=10
     lr = 0.00001
     verbose = 2
-    
+
     model = make_model(input_shape = input_shape, p = p, weight_decay = weight_decay,
                        alpha =alpha)
+    """
+    model = load_model(model_dir)
+    """
+    
     print(model.summary())
     print()
     
@@ -113,17 +119,19 @@ def main():
 
     # ## Train Model (primary data)
 
+    """
     cnt = int(0.1*len(X_train_files))
     _X_train_files = X_train_files[:cnt]
     _y_train = y_train[:cnt]
-
-    model = train_model(model, _X_train_files, _y_train, img_dir, X_val, y_val,
+    """
+    
+    model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
                         lr=lr, epochs=epochs, workers=workers, verbose=verbose)
 
     test_loss = model.evaluate(X_test, y_test, verbose=verbose)
     print("test loss: %3f" % test_loss)
     
-    model.save('%s/model.h5' % data_dir)
+    model.save(model_dir)
     print("=======================================================")
     print()
 

@@ -28,5 +28,4 @@ def preprocess_image(img, x0=0, y0=48, x1=None, y1=112, convert_to_rgb=False):
 def preprocess_images(X, x0=0, y0=48, x1=None, y1=112, convert_to_rgb=False):
     _X = np.array([preprocess_image(X[i], convert_to_rgb=convert_to_rgb) for i in range(X.shape[0])])
 
-    #return _X.reshape(list(_X.shape) + [1])
     return _X
