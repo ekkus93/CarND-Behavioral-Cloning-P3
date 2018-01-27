@@ -51,6 +51,15 @@ None
 
 1305
 Epoch 1/5
- - 22s - loss: 0.0402 - val_loss: 0.0383
+ - 23s - loss: 0.0327 - val_loss: 0.0295
 Epoch 2/5
- - 18s - loss: 0.0360 - val_loss: 0.0355
+ - 18s - loss: 0.0269 - val_loss: 0.0282
+Epoch 3/5
+ - 18s - loss: 0.0316 - val_loss: 0.0274
+Epoch 4/5
+ - 18s - loss: 0.0265 - val_loss: 0.0270
+Epoch 5/5
+ - 18s - loss: 0.0294 - val_loss: 0.0265
+test loss: 0.026486
+=======================================================
+

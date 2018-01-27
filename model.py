@@ -97,10 +97,10 @@ def main():
     # ## Model
     input_shape = (64, 320, 3)
     p = 0.5
-    weight_decay = 1e-5
-    alpha = 0.01
+    weight_decay = 1e-7
+    alpha = 0.0001
     epochs=5
-    lr = 0.0001
+    lr = 0.00001
     verbose = 2
     
     model = make_model(input_shape = input_shape, p = p, weight_decay = weight_decay,
