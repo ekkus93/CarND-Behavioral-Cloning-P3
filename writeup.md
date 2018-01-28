@@ -1,12 +1,14 @@
 # **Behavioral Cloning** 
 
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
-
 **Behavioral Cloning Project**
+
+Based on the mac_sim driving simulator, a model was built to predict steering angles from images to drive the car.  The model is based on a [VGG-style convolutional neural network](https://keras.io/getting-started/sequential-model-guide/#examples).  The model was designed to be small enough to train on a cpu in a reasonable amount of time yet still have good performance.  
+
+The training data was collected from simulator by driving the car manually 4 or 5 times around the track.  
+
+The following libraries were used to train the model:
+* Tensorflow v1.4.0
+* Keras v2.1.2
 
 The goals / steps of this project are the following:
 * Use the simulator to collect data of good driving behavior
@@ -18,7 +20,7 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/placeholder.png "Model Visualization"
+[image1]: ./imgs/model.png "Model graph"
 [image2]: ./examples/placeholder.png "Grayscaling"
 [image3]: ./examples/placeholder_small.png "Recovery Image"
 [image4]: ./examples/placeholder_small.png "Recovery Image"
@@ -32,21 +34,27 @@ The goals / steps of this project are the following:
 ---
 ### Files Submitted & Code Quality
 
-#### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
-
 My project includes the following files:
 * model.py containing the script to create and train the model
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network 
 * writeup_report.md or writeup_report.pdf summarizing the results
 
-#### 2. Submission includes functional code
+#### Running the model
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
-python drive.py model.h5
+python drive.py data/model.h5
 ```
 
-#### 3. Submission code is usable and readable
+#### Pipeline
+
+All of the images go through a preprocessing pipeline.  The code for preprocessing pipeline function, preprocess_images(), is in preprocess.py. Preprocessing involves the following steps:
+1. Cropping
+  * The top and bottom parts of the images are cropped off.  The lane lines in front of the car are the most important feature for predicting the correct steering angle.  The skyline and part of the road at the bottom of the images aren't as essential.
+2. Resizing
+  * After cropping, the image is rectangular in shape.  The images are resized to a 32x32 square.  This reduces the size of the input considerably. The heights of the images are stretched.  This accentuates the angles of the lane lines
+3. Normalization
+  * The pixel values are centered around 0.0 for faster training.
 
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
 
@@ -60,9 +68,11 @@ The model includes RELU layers to introduce nonlinearity (code line 20), and the
 
 #### 2. Attempts to reduce overfitting in the model
 
-The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
-
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+Two methods were used to reduce overfitting:
+1. Dropout 
+  * Dropout of p=0.5 was applied to the fully connected block after the activation layers.  
+2. L2 regularizers 
+  * L2 regularizers with weight_decay=1e-6 were applied the Conv2D and Dense layers.
 
 #### 3. Model parameter tuning
 
@@ -76,9 +86,29 @@ For details about how I created the training data, see the next section.
 
 ### Model Architecture and Training Strategy
 
+| Layer (type)                  | Output Shape                  |
+|:------------------------------|:------------------------------|
+| conv2d_1 (Conv2D)             | (None, 32, 32, 8)             |
+| leaky_re_lu_1 (LeakyReLU)     | (None, 32, 32, 8)             | 
+| conv2d_2 (Conv2D)             | (None, 32, 32, 8)             | 
+| leaky_re_lu_2 (LeakyReLU)     | (None, 32, 32, 8)             | 
+| max_pooling2d_1 (MaxPooling2) | (None, 16, 16, 8)             | 
+| conv2d_3 (Conv2D)             | (None, 16, 16, 16)            | 
+| leaky_re_lu_3 (LeakyReLU)     | (None, 16, 16, 16)            |
+| conv2d_4 (Conv2D)             | (None, 16, 16, 16)            |
+| leaky_re_lu_4 (LeakyReLU)     | (None, 16, 16, 16)            | 
+| max_pooling2d_2 (MaxPooling2) | (None, 8, 8, 16)              |        
+| dropout_1 (Dropout)           | (None, 8, 8, 16)              |
+| flatten_1 (Flatten)           | (None, 1024)                  |       
+| dense_1 (Dense)               | (None, 320)                   |
+| leaky_re_lu_5 (LeakyReLU)     | (None, 320)                   |
+| dropout_2 (Dropout)           | (None, 320)                   |
+| dense_2 (Dense)               | (None, 1)                     |
+
+
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
+The overall strategy for deriving a model architecture was to use a convolution neural network model that would be small enough to train in a reasonable amount of time on a cpu.  With the combination of Conv2D and MaPooling layers, I was able to reduce the number of features down to 256 before going to the fully connected layer.
 
 My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
 
