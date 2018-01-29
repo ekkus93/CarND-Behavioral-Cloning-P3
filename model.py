@@ -27,13 +27,13 @@ from behavioral_cloning import *
 
 data_dir = 'data'
 
-def load_split_data(data_dir):
+def load_split_data(data_dir, smooth_angle=False):
     train_pd_file = '%s/train.p' % data_dir
     val_pd_file = '%s/val.p' % data_dir
     test_pd_file = '%s/test.p' % data_dir
 
     if not os.path.exists(train_pd_file) or not os.path.exists(val_pd_file) or not os.path.exists(test_pd_file):
-        driving_log_pd = load_data(data_dir)
+        driving_log_pd = load_data(data_dir, smooth_angle=smooth_angle)
         
         train_pd, val_pd, test_pd = split_train_test(driving_log_pd)
         train_pd.to_pickle(train_pd_file)
@@ -72,11 +72,10 @@ def predict_from_files(model, img_dir, X_files, batch_size=32,
     return y_hat
 
 def main():
-    driving_log_pd = load_data(data_dir)
     img_dir = '%s/IMG' % data_dir
 
     # ## Data
-    train_pd, val_pd, test_pd = load_split_data(data_dir)
+    train_pd, val_pd, test_pd = load_split_data(data_dir, smooth_angle=True)
 
     # ### Preprocessing Images
 
@@ -96,14 +95,14 @@ def main():
 
     batch_size = 128
     workers=1
-    
+
     input_shape = (32, 32, 3)
-    num_fully_conn = 128
-    p = 0.5
+    num_fully_conn = 32
+    p = [1.0, 1.0]
     weight_decay = 1e-6
-    alpha = 1e-2
+    alpha = 1e-5
     epochs=10
-    lr = 1e-3
+    lr = 1e-4
     verbose = 2
 
     """
@@ -123,7 +122,7 @@ def main():
     X_train_files = X_train_files[:cnt]
     y_train = y_train[:cnt]
     """
-
+    
     # ## Train Model (primary data)    
     model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
                         lr=lr, epochs=epochs, workers=workers, verbose=verbose)
