@@ -2,6 +2,7 @@
 import tensorflow as tf
 import keras
 
+from keras.callbacks import ModelCheckpoint
 from keras.models import Sequential
 from keras.layers import Activation, Flatten, Dense, Lambda, Conv2D, MaxPooling2D, Dropout
 from keras.optimizers import Adam
@@ -46,9 +47,9 @@ def load_split_data(data_dir, smooth_angle=False):
 
     return train_pd, val_pd, test_pd
 
-def preprocess_Xy_data(Xy_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112):
+def preprocess_Xy_data(Xy_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112, size=(32, 32)):
     _X = preprocess_images(read_imgs(img_dir, Xy_pd['center_img'].tolist()),
-                           x0=crop_x0, y0=crop_y0, x1=crop_x1, y1=crop_y1)
+                           x0=crop_x0, y0=crop_y0, x1=crop_x1, y1=crop_y1, size=size)
     _y = np.array(Xy_pd['steering_angle'])
 
     return _X, _y
@@ -72,67 +73,73 @@ def predict_from_files(model, img_dir, X_files, batch_size=32,
     return y_hat
 
 def main():
+    input_shape = (128, 128, 3)
     img_dir = '%s/IMG' % data_dir
 
     # ## Data
-    train_pd, val_pd, test_pd = load_split_data(data_dir, smooth_angle=True)
+    smooth_angle=False
+    train_pd, val_pd, test_pd = load_split_data(data_dir, smooth_angle=smooth_angle)
 
     # ### Preprocessing Images
-
-    # The images will be preprocessed with the following steps:
-    # 1. Crop
-    #     * The top and bottom of the images will be cropped to reduce the size of the input.
-    # 2. Normalization
-    #     * The images are normalized with a range of -0.5 to 0.5.
     X_train_files = train_pd['center_img'].tolist()
     y_train = np.array(train_pd['steering_angle'])
 
-    X_val, y_val = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112)
-    X_test, y_test = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112)
+    X_val, y_val = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112,
+                                      size=input_shape[:2])
+    X_test, y_test = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112,
+                                        size=input_shape[:2])
+
+    assert X_val.shape[1] == 128
+    assert X_val.shape[2] == 128   
     
     # ## Model
     model_file = '%s/model.h5' % data_dir
 
-    batch_size = 128
-    workers=1
+    batch_size = 512
+    workers=7
 
-    input_shape = (32, 32, 3)
-    num_fully_conn = 32
-    p = [1.0, 1.0]
-    weight_decay = 1e-6
-    alpha = 1e-5
-    epochs=10
+    num_fully_conn = 256
+    p = 0.25
+    weight_decay = 1e-7
+    alpha = 1e-6
+    epochs=30
     lr = 1e-4
     verbose = 2
 
-    """
-    model = make_model(input_shape = input_shape, num_fully_conn=num_fully_conn,
-                       p = p, weight_decay = weight_decay, alpha =alpha)
-    """
-    model = load_model(model_file)
+    try:
+        model = make_model(input_shape = input_shape, num_fully_conn=num_fully_conn,
+                           p = p, weight_decay = weight_decay, alpha =alpha)
+        """
+        model = load_model(model_file)
+        """
     
-    print(model.summary())
-    print()
+        print(model.summary())
+        print()
     
-    model_graph_file = '%s/model.png' % data_dir
-    plot_model(model, to_file=model_graph_file)
+        model_graph_file = '%s/model.png' % data_dir
+        plot_model(model, to_file=model_graph_file)
 
-    """
-    cnt = int(0.1*len(X_train_files))
-    X_train_files = X_train_files[:cnt]
-    y_train = y_train[:cnt]
-    """
-    
-    # ## Train Model (primary data)    
-    model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
-                        lr=lr, epochs=epochs, workers=workers, verbose=verbose)
+        """
+        cnt = int(0.1*len(X_train_files))
+        X_train_files = X_train_files[:cnt]
+        y_train = y_train[:cnt]
+        """
 
-    test_loss = model.evaluate(X_test, y_test, verbose=verbose)
-    print("test loss: %3f" % test_loss)
+        checkpoint = ModelCheckpoint(model_file, monitor='val_loss', verbose=verbose,
+                                     save_best_only=True, save_weights_only=False, mode='auto', period=1)
+        callbacks = [checkpoint]
     
-    model.save(model_file)
-    print("=======================================================")
-    print()
+        # ## Train Model 
+        model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val, callbacks, size=input_shape[:2],
+                            lr=lr, epochs=epochs, workers=workers, verbose=verbose)
 
+        # load best model
+        model = load_model(model_file)
+        test_loss = model.evaluate(X_test, y_test, verbose=verbose)
+        print("test loss: %3f" % test_loss)
+    except TypeError:
+        # ignore NoneType TypeError bug with Keras when internally closing session
+        pass
+    
 if __name__ == "__main__":
     main()

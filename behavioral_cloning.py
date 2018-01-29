@@ -98,7 +98,7 @@ def split_train_test(img_steering_pd, train_perc=0.7, val_perc=0.2):
     return train_pd, val_pd, test_pd
 
 
-def make_model(input_shape = (64, 320, 3), num_fully_conn=512, p = [0.5, 0.5], weight_decay=1e-4, alpha=0.3):
+def make_model(input_shape = (64, 320, 3), num_fully_conn=512, p = 0.5, weight_decay=1e-4, alpha=0.3):
     model = Sequential()
 
     # conv block 1
@@ -106,75 +106,60 @@ def make_model(input_shape = (64, 320, 3), num_fully_conn=512, p = [0.5, 0.5], w
                      activation=None, input_shape=input_shape,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Dropout(p[0]))        
     model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation=None,
               kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    model.add(Dropout(p[0]))
     
     # conv block 2
     model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Dropout(p[0]))        
     model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    model.add(Dropout(p[0]))
-        
-    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation=None,
-              kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    model.add(Dropout(p[0]))
-    
-    # conv block 2
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))
-    model.add(Dropout(p[0]))        
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    model.add(Dropout(p[0]))
-    
+            
     # conv block 3
     model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Dropout(p[0]))        
     model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    model.add(Dropout(p[0]))
-    
+
     # conv block 4
     model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Dropout(p[0]))    
     model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
+
+    # conv block 5
+    model.add(Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation=None,
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(LeakyReLU(alpha=alpha))
+    model.add(Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation=None,
+                     kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(LeakyReLU(alpha=alpha))    
+    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
     
-    model.add(Dropout(p[1]))    
+    model.add(Dropout(p))    
     model.add(Flatten())          
 
     # fully conn block 1
     model.add(Dense(num_fully_conn, activation=None, kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Dropout(p[1]))
+    model.add(Dropout(p))
     
     model.add(Dense(1))
     
     return model
 
-def image_gen(X_files, y, batch_size, img_dir, y0=48, y1=112): 
+def image_gen(X_files, y, batch_size, img_dir, y0=48, y1=112, size=(32, 32)): 
     X_len = len(X_files)
     idxs = list(range(X_len))
     
@@ -193,11 +178,11 @@ def image_gen(X_files, y, batch_size, img_dir, y0=48, y1=112):
             curr_X_files = X_files[i:end_idx]
             curr_X = read_imgs(img_dir, curr_X_files)
             
-            curr_X = preprocess_images(curr_X, y0=y0, y1=y1)
+            curr_X = preprocess_images(curr_X, y0=y0, y1=y1, size=size)
 
             yield curr_X, curr_y
 
-def train_model(model, X_train_files, y_train, img_dir, X_val, y_val, 
+def train_model(model, X_train_files, y_train, img_dir, X_val, y_val, callbacks, size=(32,32),
                 batch_size=32, lr=0.0001, epochs=10, workers=1, verbose=0):
     assert len(X_train_files) == y_train.shape[0]
     assert len(X_train_files) > 0
@@ -205,7 +190,7 @@ def train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
     optimizer = Adam(lr=lr)
     model.compile(loss='mse', optimizer=optimizer)
 
-    train_gen = image_gen(X_train_files, y_train, batch_size, img_dir)
+    train_gen = image_gen(X_train_files, y_train, batch_size, img_dir, size=size)
 
     if len(X_train_files) < batch_size:
         steps_per_epoch = 1
@@ -216,7 +201,7 @@ def train_model(model, X_train_files, y_train, img_dir, X_val, y_val,
     model.fit_generator(train_gen, validation_data=(X_val, y_val), 
                         steps_per_epoch=steps_per_epoch,
                         epochs=epochs, workers=workers, verbose=verbose,
-                        use_multiprocessing=True)   
+                        use_multiprocessing=True, callbacks=callbacks)   
     
     return model
 
@@ -232,7 +217,7 @@ def smooth_steering_angle(img_steering_pd):
     _img_steering_pd = img_steering_pd.copy()
 
     mean_steering_angle_arr = []
-    weights = [0.125, 0.25, 0.5, 1.0, 0.5, 0.25, 0.125]
+    weights = [0.125, 0.25, 0.5, 4.0, 0.5, 0.25, 0.125]
     for i in range(len(_img_steering_pd.index)):
         steering_angles = [0.0] * len(weights)
 

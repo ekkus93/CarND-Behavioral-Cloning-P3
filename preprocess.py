@@ -24,7 +24,7 @@ def preprocess_image(img, x0=0, y0=48, x1=None, y1=112, size=(32, 32),
     if not convert_to_rgb:
         _img = cv2.cvtColor(_img, cv2.COLOR_BGR2RGB)
     
-    _img = crop_image(img, x0, y0, x1, y1)
+    #_img = crop_image(_img, x0, y0, x1, y1)
 
     _img = resize(_img, size=size)
 
