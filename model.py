@@ -71,7 +71,7 @@ def predict_from_files(model, img_dir, X_files, size=(80,160), batch_size=32):
     return y_hat
 
 def main():
-    input_shape = (32, 32, 1)
+    input_shape = (32, 32, 4)
     img_dir = '%s/IMG' % data_dir
 
     # ## Data

@@ -25,6 +25,7 @@ def resize(img, size=(32, 32)):
 def normalize(img):
     return img / 255.0 - 0.5
 
+"""
 def preprocess_image(img, size=(80, 160), apply_normalize=False):
     _img = img
 
@@ -37,7 +38,6 @@ def preprocess_image(img, size=(80, 160), apply_normalize=False):
         _img = normalize(_img)
 
     return _img
-
 
 """
 def preprocess_image(img, size=(80, 160), apply_normalize=False):
@@ -55,6 +55,7 @@ def preprocess_image(img, size=(80, 160), apply_normalize=False):
 
     return _img
 
+"""
 def preprocess_image(img, size=(80, 160), apply_normalize=False):
     _img = img
 
