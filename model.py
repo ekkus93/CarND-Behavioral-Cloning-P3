@@ -96,7 +96,7 @@ def main():
     weight_decay = 1e-6
     alpha = 1e-5
     epochs=30
-    lr = 1e-4
+    lr = 1e-5
     verbose = 2
 
     try:
