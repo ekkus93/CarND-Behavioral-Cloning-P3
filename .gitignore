@@ -7,3 +7,5 @@ models
 
 lenet.*
 sim
+
+__pycache__
