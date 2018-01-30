@@ -92,7 +92,7 @@ def main():
     workers=7
 
     num_fully_conn = 256
-    p = 1.0
+    p = 0.5
     weight_decay = 1e-6
     alpha = 1e-6
     epochs=10
