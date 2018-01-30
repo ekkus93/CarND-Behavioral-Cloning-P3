@@ -48,7 +48,7 @@ def load_split_data(data_dir, smooth_angle=False):
     return train_pd, val_pd, test_pd
 
 def preprocess_Xy_data(Xy_pd, img_dir, size=(80, 160)):
-    _X = preprocess_images(read_imgs(img_dir, Xy_pd['center_img'].tolist()), size=size)
+    _X = preprocess_images(read_imgs(img_dir, Xy_pd['center_img'].tolist()), size=size, apply_normalize=True)
     _y = np.array(Xy_pd['steering_angle'])
 
     return _X, _y
@@ -60,7 +60,7 @@ def predict_from_files(model, img_dir, X_files, size=(80,160), batch_size=32):
         curr_X_files = [X_files[j] for j in range(i, min(i+batch_size, len(X_files)))]
 
         curr_X = read_imgs(img_dir, curr_X_files)
-        curr_X = preprocess_images(curr_X, size=size)
+        curr_X = preprocess_images(curr_X, size=size, apply_normalize=True)
         
         curr_y_hat = model.predict(curr_X, batch_size=curr_X.shape[0])
         y_hat_arr.append(curr_y_hat)
@@ -71,7 +71,7 @@ def predict_from_files(model, img_dir, X_files, size=(80,160), batch_size=32):
     return y_hat
 
 def main():
-    input_shape = (80, 160, 3)
+    input_shape = (80, 160, 4)
     img_dir = '%s/IMG' % data_dir
 
     # ## Data
@@ -95,7 +95,7 @@ def main():
     p = 0.5
     weight_decay = 1e-6
     alpha = 1e-5
-    epochs=10
+    epochs=30
     lr = 1e-4
     verbose = 2
 
@@ -105,7 +105,7 @@ def main():
         """
         model = load_model(model_file)
         """
-    
+        
         print(model.summary())
         print()
     

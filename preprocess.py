@@ -27,22 +27,19 @@ def normalize(img):
 
 def preprocess_image(img, size=(80, 160), apply_normalize=False):
     _img = img
-    
-    _img = weighted_img(find_lane3(_img), _img)
-    #_img = grayscale(find_lane3(_img))
+
+    lanes = resize(grayscale(find_lane3(_img)), size=size)
+    lanes = lanes.reshape(list(lanes.shape) + [1])
 
     _img = resize(_img, size=size)
+    _img = np.concatenate([_img, lanes], axis=2)
 
     if apply_normalize:
         _img = normalize(_img)
 
-    if len(_img.shape) == 2:
-        _img = _img.reshape(list(_img.shape)+[1])
-
     return _img
 
-def preprocess_images(X, size=(32, 32),
-                      convert_to_rgb=False, apply_normalize=True):
+def preprocess_images(X, size=(32, 32), convert_to_rgb=False, apply_normalize=True):
     return np.array([preprocess_image(X[i], size=size, apply_normalize=apply_normalize) for i in range(X.shape[0])])
 
 def grayscale(img):

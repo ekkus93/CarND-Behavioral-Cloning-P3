@@ -180,7 +180,7 @@ def image_gen(X_files, y, batch_size, img_dir, size=(80, 160)):
             curr_X_files = X_files[i:end_idx]
             curr_X = read_imgs(img_dir, curr_X_files)
             
-            curr_X = preprocess_images(curr_X, size=size)
+            curr_X = preprocess_images(curr_X, size=size, apply_normalize=True)
 
             yield curr_X, curr_y
 
