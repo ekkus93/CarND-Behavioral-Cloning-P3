@@ -1,0 +1,72 @@
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+conv2d_1 (Conv2D)            (None, 80, 160, 8)        80        
+_________________________________________________________________
+leaky_re_lu_1 (LeakyReLU)    (None, 80, 160, 8)        0         
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 80, 160, 8)        584       
+_________________________________________________________________
+leaky_re_lu_2 (LeakyReLU)    (None, 80, 160, 8)        0         
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 40, 80, 8)         0         
+_________________________________________________________________
+conv2d_3 (Conv2D)            (None, 40, 80, 16)        1168      
+_________________________________________________________________
+leaky_re_lu_3 (LeakyReLU)    (None, 40, 80, 16)        0         
+_________________________________________________________________
+conv2d_4 (Conv2D)            (None, 40, 80, 16)        2320      
+_________________________________________________________________
+leaky_re_lu_4 (LeakyReLU)    (None, 40, 80, 16)        0         
+_________________________________________________________________
+max_pooling2d_2 (MaxPooling2 (None, 20, 40, 16)        0         
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 20, 40, 16)        0         
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 12800)             0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 128)               1638528   
+_________________________________________________________________
+leaky_re_lu_5 (LeakyReLU)    (None, 128)               0         
+_________________________________________________________________
+dropout_2 (Dropout)          (None, 128)               0         
+_________________________________________________________________
+dense_2 (Dense)              (None, 1)                 129       
+=================================================================
+Total params: 1,642,809
+Trainable params: 1,642,809
+Non-trainable params: 0
+_________________________________________________________________
+None
+
+Epoch 1/10
+Epoch 00001: val_loss improved from inf to 0.03161, saving model to data/model.h5
+ - 37s - loss: 0.0309 - val_loss: 0.0316
+Epoch 2/10
+Epoch 00002: val_loss improved from 0.03161 to 0.02907, saving model to data/model.h5
+ - 35s - loss: 0.0279 - val_loss: 0.0291
+Epoch 3/10
+Epoch 00003: val_loss improved from 0.02907 to 0.02818, saving model to data/model.h5
+ - 35s - loss: 0.0257 - val_loss: 0.0282
+Epoch 4/10
+Epoch 00004: val_loss improved from 0.02818 to 0.02774, saving model to data/model.h5
+ - 35s - loss: 0.0267 - val_loss: 0.0277
+Epoch 5/10
+Epoch 00005: val_loss improved from 0.02774 to 0.02769, saving model to data/model.h5
+ - 35s - loss: 0.0252 - val_loss: 0.0277
+Epoch 6/10
+Epoch 00006: val_loss did not improve
+ - 35s - loss: 0.0254 - val_loss: 0.0278
+Epoch 7/10
+Epoch 00007: val_loss improved from 0.02769 to 0.02742, saving model to data/model.h5
+ - 35s - loss: 0.0269 - val_loss: 0.0274
+Epoch 8/10
+Epoch 00008: val_loss improved from 0.02742 to 0.02742, saving model to data/model.h5
+ - 35s - loss: 0.0254 - val_loss: 0.0274
+Epoch 9/10
+Epoch 00009: val_loss improved from 0.02742 to 0.02739, saving model to data/model.h5
+ - 34s - loss: 0.0249 - val_loss: 0.0274
+Epoch 10/10
+Epoch 00010: val_loss did not improve
+ - 34s - loss: 0.0260 - val_loss: 0.0275
+test loss: 0.027388

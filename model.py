@@ -89,11 +89,11 @@ def main():
     model_file = '%s/model.h5' % data_dir
 
     batch_size = 32
-    workers=1
+    workers=7
 
-    num_fully_conn = 256
-    p = 0.25
-    weight_decay = 1e-7
+    num_fully_conn = 128
+    p = 0.5
+    weight_decay = 1e-9
     alpha = 1e-6
     epochs=10
     lr = 1e-4
@@ -112,9 +112,11 @@ def main():
         model_graph_file = '%s/model.png' % data_dir
         plot_model(model, to_file=model_graph_file)
 
+        """
         cnt = int(0.1*len(X_train_files))
         X_train_files = X_train_files[:cnt]
         y_train = y_train[:cnt]
+        """
 
         checkpoint = ModelCheckpoint(model_file, monitor='val_loss', verbose=verbose,
                                      save_best_only=True, save_weights_only=False, mode='auto', period=1)

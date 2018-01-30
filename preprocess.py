@@ -115,7 +115,7 @@ def crop_roi(img):
         cropped image based on img
     """
     bottom_y = int(0.8*img.shape[0])
-    top_y = int(0.3*img.shape[0])
+    top_y = int(0.1*img.shape[0])
     top_left_x = int(0.2*img.shape[1])
     top_right_x = int(0.8*img.shape[1])
     bottom_left_x = 0
