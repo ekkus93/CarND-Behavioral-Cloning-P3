@@ -47,7 +47,7 @@ def load_split_data(data_dir, smooth_angle=False):
 
     return train_pd, val_pd, test_pd
 
-def preprocess_Xy_data(Xy_pd, img_dir, size=(32, 32)):
+def preprocess_Xy_data(Xy_pd, img_dir, size=(80, 160)):
     _X = preprocess_images(read_imgs(img_dir, Xy_pd['center_img'].tolist()), size=size)
     _y = np.array(Xy_pd['steering_angle'])
 
@@ -71,7 +71,7 @@ def predict_from_files(model, img_dir, X_files, size=(80,160), batch_size=32):
     return y_hat
 
 def main():
-    input_shape = (80, 160, 3)
+    input_shape = (80, 160, 1)
     img_dir = '%s/IMG' % data_dir
 
     # ## Data

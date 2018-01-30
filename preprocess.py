@@ -27,8 +27,9 @@ def normalize(img):
 
 def preprocess_image(img, size=(80, 160), apply_normalize=False):
     _img = img
-
-    _img = weighted_img(find_lane3(_img), _img)
+    
+    #_img = weighted_img(find_lane3(_img), _img)
+    _img = grayscale(find_lane3(_img))
 
     _img = resize(_img, size=size)
 
@@ -42,7 +43,7 @@ def preprocess_image(img, size=(80, 160), apply_normalize=False):
 
 def preprocess_images(X, size=(32, 32),
                       convert_to_rgb=False, apply_normalize=True):
-    return np.array([preprocess_image(X[i], apply_normalize=apply_normalize) for i in range(X.shape[0])])
+    return np.array([preprocess_image(X[i], size=size, apply_normalize=apply_normalize) for i in range(X.shape[0])])
 
 def grayscale(img):
     """Applies the Grayscale transform
