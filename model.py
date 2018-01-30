@@ -71,7 +71,7 @@ def predict_from_files(model, img_dir, X_files, size=(80,160), batch_size=32):
     return y_hat
 
 def main():
-    input_shape = (80, 160, 1)
+    input_shape = (80, 160, 3)
     img_dir = '%s/IMG' % data_dir
 
     # ## Data
@@ -93,8 +93,8 @@ def main():
 
     num_fully_conn = 128
     p = 0.5
-    weight_decay = 1e-9
-    alpha = 1e-6
+    weight_decay = 1e-6
+    alpha = 1e-5
     epochs=10
     lr = 1e-4
     verbose = 2

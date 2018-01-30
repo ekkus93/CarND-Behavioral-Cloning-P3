@@ -28,8 +28,8 @@ def normalize(img):
 def preprocess_image(img, size=(80, 160), apply_normalize=False):
     _img = img
     
-    #_img = weighted_img(find_lane3(_img), _img)
-    _img = grayscale(find_lane3(_img))
+    _img = weighted_img(find_lane3(_img), _img)
+    #_img = grayscale(find_lane3(_img))
 
     _img = resize(_img, size=size)
 
