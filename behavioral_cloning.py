@@ -98,7 +98,7 @@ def split_train_test(img_steering_pd, train_perc=0.7, val_perc=0.2):
     return train_pd, val_pd, test_pd
 
 
-def make_model(input_shape = (64, 320, 3), num_fully_conn=512, p = 0.5, weight_decay=1e-4, alpha=0.3):
+def make_model(input_shape = (80, 160, 3), num_fully_conn=512, p = 0.5, weight_decay=1e-4, alpha=0.3):
     model = Sequential()
 
     # conv block 1
@@ -159,7 +159,7 @@ def make_model(input_shape = (64, 320, 3), num_fully_conn=512, p = 0.5, weight_d
     
     return model
 
-def image_gen(X_files, y, batch_size, img_dir, y0=48, y1=112, size=(32, 32)): 
+def image_gen(X_files, y, batch_size, img_dir, size=(80, 160)): 
     X_len = len(X_files)
     idxs = list(range(X_len))
     
@@ -178,11 +178,11 @@ def image_gen(X_files, y, batch_size, img_dir, y0=48, y1=112, size=(32, 32)):
             curr_X_files = X_files[i:end_idx]
             curr_X = read_imgs(img_dir, curr_X_files)
             
-            curr_X = preprocess_images(curr_X, y0=y0, y1=y1, size=size)
+            curr_X = preprocess_images(curr_X, size=size)
 
             yield curr_X, curr_y
 
-def train_model(model, X_train_files, y_train, img_dir, X_val, y_val, callbacks, size=(32,32),
+def train_model(model, X_train_files, y_train, img_dir, X_val, y_val, callbacks, size=(80,160),
                 batch_size=32, lr=0.0001, epochs=10, workers=1, verbose=0):
     assert len(X_train_files) == y_train.shape[0]
     assert len(X_train_files) > 0

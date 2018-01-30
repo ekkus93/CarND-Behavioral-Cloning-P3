@@ -1,0 +1,247 @@
+class Line(object):
+    """
+    Represents a line
+    """
+    def __init__(self, x1,y1,x2,y2):
+        """
+        Constructor for Line
+        
+        Parameters
+        ----------
+        x1, y1: int, int
+            x,y of first point
+        x2, y2: int, int
+            x,y of second point
+        """
+        self.x1,self.y1,self.x2,self.y2 = x1,y1,x2,y2
+        self._m = None
+        self._b = None
+        
+    @property
+    def m(self):
+        """
+        Slope of the line
+        
+        Returns
+        -------
+        float
+            (y2-y1)/(x2-x1)
+        """
+        if self._m is None:
+            if self.x2-self.x1 == 0:
+                self._m = 0.0
+            else:
+                self._m = float(self.y2-self.y1)/float(self.x2-self.x1)
+            
+        return self._m
+    
+    @property
+    def b(self):
+        """
+        x-intercept
+        
+        Returns
+        -------
+        float
+            y1 - m*x1
+        """
+        if self._b is None:
+            self._b = self.y1 - self.m*self.x1
+            
+        return self._b
+    
+    def find_x(self, y):
+        """
+        Based on y, find x.
+        
+        Parameters
+        ----------
+        y: int
+            y coordinate
+            
+        Returns
+        -------
+        float
+            corresponding x value
+        """
+        return (y-self.b)/self.m
+    
+    def find_y(self, x):
+        """
+        Based on x, find y.
+        
+        Parameters
+        ----------
+        x: int
+            x coordinate
+            
+        Returns
+        -------
+        float
+            corresponding y value
+        """        
+        return self.m*x + self.b
+
+class LineCollection(object):
+    """
+    A collection of Lines.
+    """
+    def __init__(self, line_objs=[]):
+        self.line_objs = line_objs
+        self._mean_m = None
+        self._mean_b = None
+        self._top_y = None
+        self._bottom_y = None
+        
+    @property
+    def length(self):
+        """
+        Get number of lines.
+        
+        Returns
+        -------
+        int
+            number of lines
+        """
+        return len(self.line_objs)
+        
+    @property
+    def mean_m(self):
+        """
+        Get the mean slope of all lines.
+        
+        Returns
+        -------
+        float
+            mean slope
+        """
+        if self._mean_m is None:
+            if self.length == 0:
+                self._mean_m = 0.0
+            else:
+                self._mean_m = float(np.mean([lo.m for lo in self.line_objs]))
+            
+        return self._mean_m
+    
+    @property
+    def mean_b(self):
+        """
+        Get the mean x-intercept of all lines.
+        
+        Returns
+        -------
+        float
+            mean x-intercept
+        """
+        if self._mean_b is None:
+            if self.length == 0:
+                self._mean_b = 0.0
+            else:
+                self._mean_b = float(np.mean([lo.b for lo in self.line_objs]))
+            
+        return self._mean_b
+    
+    @property
+    def top_y(self):
+        if self._top_y is None:
+            min_y = None
+        
+            for line_obj in self.line_objs:
+                if min_y is None or line_obj.y1 < min_y:
+                    min_y = line_obj.y1
+                    
+                if min_y is None or line_obj.y2 < min_y:
+                    min_y = line_obj.y2
+            
+            self._min_y = int(min_y)
+            
+        return self._top_y
+    
+    @property
+    def bottom_y(self):
+        """
+        Find the bottom (furthest down) y value out of all lines.
+        
+        Returns
+        -------
+        int
+            bottom y value
+        """
+        if self._bottom_y is None:
+            max_y = 0
+        
+            for line_obj in self.line_objs:
+                if line_obj.y1 > max_y:
+                    max_y = line_obj.y1
+                    
+                if line_obj.y2 > max_y:
+                    max_y = line_obj.y2
+                
+            self._bottom_y =  int(max_y)
+            
+        return self._bottom_y
+    
+    @property
+    def top_y(self):
+        """
+        Find the top (furthest up) y value out of all lines.
+        
+        Returns
+        -------
+        int
+            top y value
+        """        
+        if self._top_y is None:
+            min_y = None
+        
+            for line_obj in self.line_objs:
+                if min_y is None or line_obj.y1 < min_y:
+                    min_y = line_obj.y1
+                    
+                if min_y is None or line_obj.y2 < min_y:
+                    min_y = line_obj.y2
+                
+            if min_y is None:
+                self._top_y = None
+            else:
+                self._top_y = int(min_y)
+            
+        return self._top_y
+    
+    def get_x(self, y):
+        """
+        Get x value based on the mean of the slope and x-intercept.
+        
+        Returns
+        -------
+        int
+            x value
+        """
+        if self.mean_m == 0.0:
+            return 0
+       
+        return int((y - self.mean_b)/self.mean_m)
+
+    def get_mean_line_pts(self, bottom_y):
+        """
+        Get points for the mean line.  Extend the line to bottom_y.
+        
+        Parameters
+        ----------
+        bottom_y: int
+            The bottom y for the line.
+            
+        Returns
+        -------
+        int, int, int, int
+            Points for the line
+        """
+        if self.top_y is None:
+            top_y = bottom_y
+        else:
+            top_y = self.top_y 
+            
+        top_x = self.get_x(top_y)
+            
+        bottom_x = self.get_x(bottom_y)
+        return (top_x, top_y, bottom_x, bottom_y)    

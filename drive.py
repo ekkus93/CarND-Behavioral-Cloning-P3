@@ -43,11 +43,9 @@ class SimplePIController:
 
         return self.Kp * self.error + self.Ki * self.integral
 
-
 controller = SimplePIController(0.1, 0.002)
 set_speed = 9
 controller.set_desired(set_speed)
-
 
 @sio.on('telemetry')
 def telemetry(sid, data):
@@ -65,7 +63,7 @@ def telemetry(sid, data):
 
         # preprocess images
         image_array = image_array.reshape([1] + list(image_array.shape))
-        image_array = preprocess_images(image_array, y0=48, y1=112, convert_to_rgb=True)
+        image_array = preprocess_images(image_array, size=(80,160))
         
         #steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
         steering_angle = float(model.predict(image_array, batch_size=1))

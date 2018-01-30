@@ -47,22 +47,20 @@ def load_split_data(data_dir, smooth_angle=False):
 
     return train_pd, val_pd, test_pd
 
-def preprocess_Xy_data(Xy_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112, size=(32, 32)):
-    _X = preprocess_images(read_imgs(img_dir, Xy_pd['center_img'].tolist()),
-                           x0=crop_x0, y0=crop_y0, x1=crop_x1, y1=crop_y1, size=size)
+def preprocess_Xy_data(Xy_pd, img_dir, size=(32, 32)):
+    _X = preprocess_images(read_imgs(img_dir, Xy_pd['center_img'].tolist()), size=size)
     _y = np.array(Xy_pd['steering_angle'])
 
     return _X, _y
 
-def predict_from_files(model, img_dir, X_files, batch_size=32,
-                       crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112):
+def predict_from_files(model, img_dir, X_files, size=(80,160), batch_size=32):
     y_hat_arr = []
 
     for i in range(0, len(X_files), batch_size):
         curr_X_files = [X_files[j] for j in range(i, min(i+batch_size, len(X_files)))]
 
         curr_X = read_imgs(img_dir, curr_X_files)
-        curr_X = preprocess_images(curr_X, x0=crop_x0, y0=crop_y0, x1=crop_x1, y1=crop_y1)
+        curr_X = preprocess_images(curr_X, size=size)
         
         curr_y_hat = model.predict(curr_X, batch_size=curr_X.shape[0])
         y_hat_arr.append(curr_y_hat)
@@ -73,7 +71,7 @@ def predict_from_files(model, img_dir, X_files, batch_size=32,
     return y_hat
 
 def main():
-    input_shape = (128, 128, 3)
+    input_shape = (80, 160, 3)
     img_dir = '%s/IMG' % data_dir
 
     # ## Data
@@ -84,25 +82,20 @@ def main():
     X_train_files = train_pd['center_img'].tolist()
     y_train = np.array(train_pd['steering_angle'])
 
-    X_val, y_val = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112,
-                                      size=input_shape[:2])
-    X_test, y_test = preprocess_Xy_data(val_pd, img_dir, crop_x0=0, crop_y0=48, crop_x1=None, crop_y1=112,
-                                        size=input_shape[:2])
-
-    assert X_val.shape[1] == 128
-    assert X_val.shape[2] == 128   
+    X_val, y_val = preprocess_Xy_data(val_pd, img_dir, size=input_shape[:2])
+    X_test, y_test = preprocess_Xy_data(val_pd, img_dir, size=input_shape[:2])
     
     # ## Model
     model_file = '%s/model.h5' % data_dir
 
-    batch_size = 512
-    workers=7
+    batch_size = 32
+    workers=1
 
     num_fully_conn = 256
     p = 0.25
     weight_decay = 1e-7
     alpha = 1e-6
-    epochs=30
+    epochs=10
     lr = 1e-4
     verbose = 2
 
@@ -119,11 +112,9 @@ def main():
         model_graph_file = '%s/model.png' % data_dir
         plot_model(model, to_file=model_graph_file)
 
-        """
         cnt = int(0.1*len(X_train_files))
         X_train_files = X_train_files[:cnt]
         y_train = y_train[:cnt]
-        """
 
         checkpoint = ModelCheckpoint(model_file, monitor='val_loss', verbose=verbose,
                                      save_best_only=True, save_weights_only=False, mode='auto', period=1)
