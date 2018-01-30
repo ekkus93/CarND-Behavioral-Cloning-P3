@@ -120,7 +120,7 @@ def make_model(input_shape = (80, 160, 3), num_fully_conn=512, p = 0.5, weight_d
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
 
-    """    
+
     # conv block 3
     model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(weight_decay)))
@@ -129,25 +129,6 @@ def make_model(input_shape = (80, 160, 3), num_fully_conn=512, p = 0.5, weight_d
                      kernel_regularizer=regularizers.l2(weight_decay)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-
-    # conv block 4
-    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))
-    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-
-    # conv block 5
-    model.add(Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))
-    model.add(Conv2D(128, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
-    model.add(LeakyReLU(alpha=alpha))    
-    model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
-    """
     
     model.add(Dropout(p))    
     model.add(Flatten())          

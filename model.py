@@ -71,7 +71,7 @@ def predict_from_files(model, img_dir, X_files, size=(80,160), batch_size=32):
     return y_hat
 
 def main():
-    input_shape = (80, 160, 4)
+    input_shape = (32, 32, 1)
     img_dir = '%s/IMG' % data_dir
 
     # ## Data
@@ -91,12 +91,12 @@ def main():
     batch_size = 32
     workers=7
 
-    num_fully_conn = 128
-    p = 0.5
+    num_fully_conn = 256
+    p = 1.0
     weight_decay = 1e-6
-    alpha = 1e-5
-    epochs=30
-    lr = 1e-5
+    alpha = 1e-6
+    epochs=10
+    lr = 1e-4
     verbose = 2
 
     try:
@@ -108,9 +108,11 @@ def main():
         
         print(model.summary())
         print()
-    
+
+        """
         model_graph_file = '%s/model.png' % data_dir
         plot_model(model, to_file=model_graph_file)
+        """
 
         """
         cnt = int(0.1*len(X_train_files))
@@ -121,7 +123,10 @@ def main():
         checkpoint = ModelCheckpoint(model_file, monitor='val_loss', verbose=verbose,
                                      save_best_only=True, save_weights_only=False, mode='auto', period=1)
         callbacks = [checkpoint]
-    
+
+        assert X_val.shape[1] == input_shape[0], X_val.shape[1]
+        assert X_val.shape[2] == input_shape[1], X_val.shape[2]
+        
         # ## Train Model 
         model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val, callbacks, size=input_shape[:2],
                             lr=lr, epochs=epochs, workers=workers, verbose=verbose)
