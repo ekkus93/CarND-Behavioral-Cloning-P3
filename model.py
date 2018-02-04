@@ -28,13 +28,13 @@ from behavioral_cloning import *
 
 data_dir = 'data'
 
-def load_split_data(data_dir, smooth_angle=False):
+def load_split_data(data_dir):
     train_pd_file = '%s/train.p' % data_dir
     val_pd_file = '%s/val.p' % data_dir
     test_pd_file = '%s/test.p' % data_dir
 
     if not os.path.exists(train_pd_file) or not os.path.exists(val_pd_file) or not os.path.exists(test_pd_file):
-        driving_log_pd = load_data(data_dir, smooth_angle=smooth_angle)
+        driving_log_pd = load_data(data_dir)
         
         train_pd, val_pd, test_pd = split_train_test(driving_log_pd)
         train_pd.to_pickle(train_pd_file)
@@ -76,7 +76,7 @@ def main():
 
     # ## Data
     smooth_angle=False
-    train_pd, val_pd, test_pd = load_split_data(data_dir, smooth_angle=smooth_angle)
+    train_pd, val_pd, test_pd = load_split_data(data_dir)
 
     # ### Preprocessing Images
     X_train_files = train_pd['center_img'].tolist()
@@ -93,51 +93,33 @@ def main():
 
     num_fully_conn = 256
     p = 0.5
-    weight_decay = 1e-6
+    l = 1e-6
     alpha = 1e-6
     epochs=10
     lr = 1e-4
     verbose = 2
 
-    try:
-        model = make_model(input_shape = input_shape, num_fully_conn=num_fully_conn,
-                           p = p, weight_decay = weight_decay, alpha =alpha)
-        """
-        model = load_model(model_file)
-        """
+    model = make_model(input_shape = input_shape, num_fully_conn=num_fully_conn,
+                       p = p, l = l, alpha =alpha)
         
-        print(model.summary())
-        print()
+    print(model.summary())
+    print()
 
-        """
-        model_graph_file = '%s/model.png' % data_dir
-        plot_model(model, to_file=model_graph_file)
-        """
-
-        """
-        cnt = int(0.1*len(X_train_files))
-        X_train_files = X_train_files[:cnt]
-        y_train = y_train[:cnt]
-        """
-
-        checkpoint = ModelCheckpoint(model_file, monitor='val_loss', verbose=verbose,
-                                     save_best_only=True, save_weights_only=False, mode='auto', period=1)
-        callbacks = [checkpoint]
-
-        assert X_val.shape[1] == input_shape[0], X_val.shape[1]
-        assert X_val.shape[2] == input_shape[1], X_val.shape[2]
+    checkpoint = ModelCheckpoint(model_file, monitor='val_loss', verbose=verbose,
+                                 save_best_only=True, save_weights_only=False, mode='auto', period=1)
+    callbacks = [checkpoint]
+    
+    assert X_val.shape[1] == input_shape[0], X_val.shape[1]
+    assert X_val.shape[2] == input_shape[1], X_val.shape[2]
         
-        # ## Train Model 
-        model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val, callbacks, size=input_shape[:2],
-                            lr=lr, epochs=epochs, workers=workers, verbose=verbose)
+    # ## Train Model 
+    model = train_model(model, X_train_files, y_train, img_dir, X_val, y_val, callbacks, size=input_shape[:2],
+                        lr=lr, epochs=epochs, workers=workers, verbose=verbose)
 
-        # load best model
-        model = load_model(model_file)
-        test_loss = model.evaluate(X_test, y_test, verbose=verbose)
-        print("test loss: %3f" % test_loss)
-    except TypeError:
-        # ignore NoneType TypeError bug with Keras when internally closing session
-        pass
+    # load best model
+    model = load_model(model_file)
+    test_loss = model.evaluate(X_test, y_test, verbose=verbose)
+    print("test loss: %3f" % test_loss)
     
 if __name__ == "__main__":
     main()

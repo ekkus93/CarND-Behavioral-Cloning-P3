@@ -32,7 +32,7 @@ def parse_file_name(full_path):
     else:
         return full_path
 
-def load_data(data_dir, smooth_angle=False):
+def load_data(data_dir):
     colnames = ['center_img', 'left_img', 'right_img', 'steering_angle', 
                 'throttle', 'break', 'speed']
     driving_log_pd = pd.read_csv('%s/driving_log.csv' % data_dir, sep=',', names=colnames)
@@ -40,9 +40,6 @@ def load_data(data_dir, smooth_angle=False):
     for colname in ['center_img', 'left_img', 'right_img']:
         driving_log_pd[colname] = [parse_file_name(x) for x 
                                    in driving_log_pd[colname].tolist()]
-
-    if smooth_angle:
-        driving_log_pd = smooth_steering_angle(driving_log_pd)
         
     return driving_log_pd
 
@@ -97,36 +94,35 @@ def split_train_test(img_steering_pd, train_perc=0.7, val_perc=0.2):
     
     return train_pd, val_pd, test_pd
 
-
-def make_model(input_shape = (80, 160, 3), num_fully_conn=512, p = 0.5, weight_decay=1e-4, alpha=0.3):
+def make_model(input_shape = (80, 160, 3), num_fully_conn=512, p = 0.5, l=1e-4, alpha=0.3):
     model = Sequential()
 
     # conv block 1
     model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', 
                      activation=None, input_shape=input_shape,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
+                     kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))
     model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation=None,
-              kernel_regularizer=regularizers.l2(weight_decay)))
+              kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
     
     # conv block 2
     model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
+                     kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))
     model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
+                     kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
 
 
     # conv block 3
     model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
+                     kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))
     model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
-                     kernel_regularizer=regularizers.l2(weight_decay)))
+                     kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
     
@@ -134,13 +130,27 @@ def make_model(input_shape = (80, 160, 3), num_fully_conn=512, p = 0.5, weight_d
     model.add(Flatten())          
 
     # fully conn block 1
-    model.add(Dense(num_fully_conn, activation=None, kernel_regularizer=regularizers.l2(weight_decay)))
+    model.add(Dense(num_fully_conn, activation=None, kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))
     model.add(Dropout(p))
     
     model.add(Dense(1))
     
     return model
+
+def flip_imgs(imgs):
+    flip_img_arr = [np.fliplr(imgs[i]) for i in range(imgs.shape[0])]
+
+    return np.stack(flip_img_arr)
+
+def flip_y(y):
+    flipped_y_arr = [-y[i] for i in range(y.shape[0])]
+
+    flipped_y = np.array(flipped_y_arr)
+
+    assert y.shape[0] == flipped_y.shape[0]
+
+    return flipped_y
 
 def image_gen(X_files, y, batch_size, img_dir, size=(80, 160)): 
     X_len = len(X_files)
@@ -160,6 +170,11 @@ def image_gen(X_files, y, batch_size, img_dir, size=(80, 160)):
             curr_y = y[i:end_idx]
             curr_X_files = X_files[i:end_idx]
             curr_X = read_imgs(img_dir, curr_X_files)
+
+            if rand.randint(0,1):
+                # flip training data
+                curr_X = flip_imgs(curr_X)
+                curr_y = flip_y(curr_y)
             
             curr_X = preprocess_images(curr_X, size=size, apply_normalize=True)
 

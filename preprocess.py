@@ -25,21 +25,6 @@ def resize(img, size=(32, 32)):
 def normalize(img):
     return img / 255.0 - 0.5
 
-"""
-def preprocess_image(img, size=(80, 160), apply_normalize=False):
-    _img = img
-
-    lanes = find_lane3(_img)[:,:,0]
-    lanes = resize(lanes, size=size)
-    _img = lanes.reshape(list(lanes.shape) + [1])
-
-
-    if apply_normalize:
-        _img = normalize(_img)
-
-    return _img
-
-"""
 def preprocess_image(img, size=(80, 160), apply_normalize=False):
     _img = img
 
@@ -54,18 +39,6 @@ def preprocess_image(img, size=(80, 160), apply_normalize=False):
         _img = normalize(_img)
 
     return _img
-
-"""
-def preprocess_image(img, size=(80, 160), apply_normalize=False):
-    _img = img
-
-    _img = resize(_img, size=size)
-    
-    if apply_normalize:
-        _img = normalize(_img)
-
-    return _img
-"""
 
 def preprocess_images(X, size=(32, 32), convert_to_rgb=False, apply_normalize=True):
     return np.array([preprocess_image(X[i], size=size, apply_normalize=apply_normalize) for i in range(X.shape[0])])

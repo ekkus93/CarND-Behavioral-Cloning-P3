@@ -63,7 +63,7 @@ def telemetry(sid, data):
 
         # preprocess images
         image_array = image_array.reshape([1] + list(image_array.shape))
-        image_array = preprocess_images(image_array, size=(40,80), apply_normalize=True)
+        image_array = preprocess_images(image_array, size=(32,32), apply_normalize=True)
         
         steering_angle = float(model.predict(image_array, batch_size=1))
 

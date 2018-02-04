@@ -21,94 +21,132 @@ The goals / steps of this project are the following:
 [//]: # (Image References)
 
 [image1]: ./imgs/model.png "Model graph"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
+[image2]: ./imgs/sample_track.png "Sample track"
+[image3]: ./imgs/sample_lane_lines.png "Sample lane lines"
+[image4]: ./imgs/sample_merged_lane_lines.png "Sample merged lane lines"
 [image5]: ./examples/placeholder_small.png "Recovery Image"
 [image6]: ./examples/placeholder_small.png "Normal Image"
 [image7]: ./examples/placeholder_small.png "Flipped Image"
 
-## Rubric Points
-### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
-
 ---
-### Files Submitted & Code Quality
+### Files 
 
 My project includes the following files:
 * model.py containing the script to create and train the model
+* preprocessing.py containing common functions for preprocessing the image data for model.py and drive.py
+* behavioral_cloning.py containing helper functions for model.py
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network 
 * writeup_report.md or writeup_report.pdf summarizing the results
+* model_train.log has the output of the training
 
 #### Running the model
+
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 ```sh
 python drive.py data/model.h5
 ```
 
-#### Pipeline
+#### 3. Submission code 
 
-All of the images go through a preprocessing pipeline.  The code for preprocessing pipeline function, preprocess_images(), is in preprocess.py. Preprocessing involves the following steps:
-1. Cropping
-  * The top and bottom parts of the images are cropped off.  The lane lines in front of the car are the most important feature for predicting the correct steering angle.  The skyline and part of the road at the bottom of the images aren't as essential.
-2. Resizing
-  * After cropping, the image is rectangular in shape.  The images are resized to a 32x32 square.  This reduces the size of the input considerably. The heights of the images are stretched.  This accentuates the angles of the lane lines
-3. Normalization
-  * The pixel values are centered around 0.0 for faster training.
-
-The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
+The model.py file contains the code for training and saving the convolution neural network. The behavioral_modeling.py has functions for creating and training the model.  In addition to this, there are various helper functions.  The pipeline.py has common functions for preprocessing images which are used both by model.py for training the model and in drive.py for the autonomous driving. 
 
 ### Model Architecture and Training Strategy
-
-#### 1. An appropriate model architecture has been employed
-
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
-
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
-
-#### 2. Attempts to reduce overfitting in the model
-
-Two methods were used to reduce overfitting:
-1. Dropout 
-  * Dropout of p=0.5 was applied to the fully connected block after the activation layers.  
-2. L2 regularizers 
-  * L2 regularizers with weight_decay=1e-6 were applied the Conv2D and Dense layers.
-
-#### 3. Model parameter tuning
-
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
-
-#### 4. Appropriate training data
-
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ... 
-
-For details about how I created the training data, see the next section. 
-
-### Model Architecture and Training Strategy
-
-| Layer (type)                  | Output Shape                  |
-|:------------------------------|:------------------------------|
-| conv2d_1 (Conv2D)             | (None, 32, 32, 8)             |
-| leaky_re_lu_1 (LeakyReLU)     | (None, 32, 32, 8)             | 
-| conv2d_2 (Conv2D)             | (None, 32, 32, 8)             | 
-| leaky_re_lu_2 (LeakyReLU)     | (None, 32, 32, 8)             | 
-| max_pooling2d_1 (MaxPooling2) | (None, 16, 16, 8)             | 
-| conv2d_3 (Conv2D)             | (None, 16, 16, 16)            | 
-| leaky_re_lu_3 (LeakyReLU)     | (None, 16, 16, 16)            |
-| conv2d_4 (Conv2D)             | (None, 16, 16, 16)            |
-| leaky_re_lu_4 (LeakyReLU)     | (None, 16, 16, 16)            | 
-| max_pooling2d_2 (MaxPooling2) | (None, 8, 8, 16)              |        
-| dropout_1 (Dropout)           | (None, 8, 8, 16)              |
-| flatten_1 (Flatten)           | (None, 1024)                  |       
-| dense_1 (Dense)               | (None, 320)                   |
-| leaky_re_lu_5 (LeakyReLU)     | (None, 320)                   |
-| dropout_2 (Dropout)           | (None, 320)                   |
-| dense_2 (Dense)               | (None, 1)                     |
-
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to use a convolution neural network model that would be small enough to train in a reasonable amount of time on a cpu.  With the combination of Conv2D and MaPooling layers, I was able to reduce the number of features down to 256 before going to the fully connected layer.
+The overall strategy for deriving a model architecture was to create a model to take the original RBG data of a single image with the addition of lane lines to predict a good steering angle.
+
+My first step was to use a convolution neural network model similar to a VGG-style model. I thought this model might be appropriate because it is a pretty simple and reliable convolution neural network that I would build on.
+
+In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
+
+To combat the overfitting, I did the following things adjust the model:
+1. Reducing the size of the model
+  * Lowering the number of filters in the Conv2D layers
+  * Lowering the number of nodes in the Dense layer
+2. Adding Dropout
+  * Dropout rate was set to 0.5
+3. Adding L2 regularization
+  * For the Conv2D and Dense layers, the kernel regularizers were set to use L2 regularization with an l of 1e-6
+  
+At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+
+#### 2. Final Model Architecture
+
+My model consists of a VGG-style convolution neural network. (behavioral_cloning.py lines 100-142) The model includes leaky RELU layers to introduce nonlinearity. 
+
+| Layer Name       | Layer Type                 | Output Shape | 
+|:-----------------|:---------------------------|:-------------|
+| conv2d_1         | Conv2D                     | (32, 32, 8)  |     
+| leaky_re_lu_1    | LeakyReLU                  | (32, 32, 8)  |
+| conv2d_2         | Conv2D                     | (32, 32, 8)  |   
+| leaky_re_lu_2    | LeakyReLU                  | (32, 32, 8)  |    
+| max_pooling2d_1  | MaxPooling2D               | (16, 16, 8)  |       
+| conv2d_3         | Conv2D                     | (16, 16, 16) |     
+| leaky_re_lu_3    | LeakyReLU                  | (16, 16, 16) |       
+| conv2d_4         | Conv2D                     | (16, 16, 16) |      
+| leaky_re_lu_4    | LeakyReLU                  | (16, 16, 16) |       
+| max_pooling2d_2  | MaxPooling2D               | (8, 8, 16)   |       
+| conv2d_5         | Conv2D                     | (8, 8, 32)   |       
+| leaky_re_lu_5    | LeakyReLU                  | (8, 8, 32)   |       
+| conv2d_6         | Conv2D                     | (8, 8, 32)   |        
+| leaky_re_lu_6    | LeakyReLU                  | (8, 8, 32)   |       
+| max_pooling2d_3  | MaxPooling2D               | (4, 4, 32)   |        
+| dropout_1        | Dropout                    | (4, 4, 32)   |       
+| flatten_1        | Flatten                    | (512)        |        
+| dense_1          | Dense                      | (256)        |        
+| leaky_re_lu_7    | LeakyReLU                  | (256)        |        
+| dropout_2        | Dropout                    | (256)        |        
+| dense_2          | Dense                      | (1)          |    
+
+![][image1]
+
+#### 3. Creation of the Training Set & Training Process
+
+To capture good driving behavior, I first recorded 4-5 laps on track one using center lane driving.  I thought that this was enough data for the model to learn to average out the best steering angle for the track.  Here's a sample of the training images:
+
+![][image2]
+
+The total number of images collected was 18644.  The split of the data is:
+
+| Type       | Count   |
+|:-----------|--------:|
+| Train      | 13050   |
+| Validation | 3728    |
+| Test       | 1866    |
+
+#### 3. Model parameter tuning
+
+The model used an adam optimizer, so the learning rate was not tuned manually (behavioral_cloning.py line 169).  The initial learning rate was 1e-4.
+
+#### 4. Appropriate training data
+
+Training data consists of recordings of driving the car around the track 4-5 times. 
+
+Originally, I extracted the lane lines using a Canny filter and a Hough transform and merged them with the original image:
+![][image4]
+
+I ended up adding the lane lines as a separate layer so the model didn't need to learn how to extract the merged lane lines from the image.
+![][image3]
+
+
+
+
+
+
+
+
+
+
+
+
+
+### Model Architecture and Training Strategy
+
+#### 1. Solution Design Approach
+
+The overall strategy for deriving a model architecture was to ...
 
 My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
 
@@ -157,3 +195,13 @@ After the collection process, I had X number of data points. I then preprocessed
 I finally randomly shuffled the data set and put Y% of the data into a validation set. 
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+
+#### Pipeline
+
+All of the images go through a preprocessing pipeline for training and automous driving of the car.  The code for preprocessing pipeline function, preprocess_images(), is in preprocess.py. Preprocessing involves the following steps:
+1. Adding lane lines layer
+  * In addition to using the RGB color layers of the image, an extra layer is added with lane lines.  The lane lines are extracted from a grayscale image of the original image using a canny filter and a hough transform.
+2. Resizing
+  * All layers are resized to 32x32.
+3. Normalization
+  * All layers are centered around 0.0 with a range of -0.5 to 0.5.
