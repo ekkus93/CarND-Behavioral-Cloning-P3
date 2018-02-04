@@ -95,7 +95,7 @@ def main():
     p = 0.5
     l = 1e-6
     alpha = 1e-6
-    epochs=10
+    epochs=20
     lr = 1e-4
     verbose = 2
 

@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import imread
 
-from random import shuffle, random
+from random import shuffle, random, randint
 import cv2
 from skimage import exposure
 from tqdm import tqdm
@@ -98,30 +98,30 @@ def make_model(input_shape = (80, 160, 3), num_fully_conn=512, p = 0.5, l=1e-4, 
     model = Sequential()
 
     # conv block 1
-    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', 
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', 
                      activation=None, input_shape=input_shape,
                      kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Conv2D(8, (3, 3), strides=(1, 1), padding='same', activation=None,
+    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
               kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
     
     # conv block 2
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
+    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Conv2D(16, (3, 3), strides=(1, 1), padding='same', activation=None,
+    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
 
 
     # conv block 3
-    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))
-    model.add(Conv2D(32, (3, 3), strides=(1, 1), padding='same', activation=None,
+    model.add(Conv2D(64, (3, 3), strides=(1, 1), padding='same', activation=None,
                      kernel_regularizer=regularizers.l2(l)))
     model.add(LeakyReLU(alpha=alpha))    
     model.add(MaxPooling2D(pool_size=2, strides=2, padding='same'))
@@ -171,7 +171,7 @@ def image_gen(X_files, y, batch_size, img_dir, size=(80, 160)):
             curr_X_files = X_files[i:end_idx]
             curr_X = read_imgs(img_dir, curr_X_files)
 
-            if rand.randint(0,1):
+            if randint(0,1):
                 # flip training data
                 curr_X = flip_imgs(curr_X)
                 curr_y = flip_y(curr_y)
