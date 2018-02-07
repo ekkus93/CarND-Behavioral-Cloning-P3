@@ -144,13 +144,7 @@ def flip_imgs(imgs):
     return np.stack(flip_img_arr)
 
 def flip_y(y):
-    flipped_y_arr = [-y[i] for i in range(y.shape[0])]
-
-    flipped_y = np.array(flipped_y_arr)
-
-    assert y.shape[0] == flipped_y.shape[0]
-
-    return flipped_y
+    return -y
 
 def image_gen(X_files, y, batch_size, img_dir, size=(80, 160)): 
     X_len = len(X_files)

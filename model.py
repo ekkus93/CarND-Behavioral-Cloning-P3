@@ -75,7 +75,6 @@ def main():
     img_dir = '%s/IMG' % data_dir
 
     # ## Data
-    smooth_angle=False
     train_pd, val_pd, test_pd = load_split_data(data_dir)
 
     # ### Preprocessing Images
