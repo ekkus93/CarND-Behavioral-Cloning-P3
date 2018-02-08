@@ -1,3 +1,5 @@
+import numpy as np
+
 class Line(object):
     """
     Represents a line
@@ -81,7 +83,6 @@ class Line(object):
             corresponding y value
         """        
         return self.m*x + self.b
-import numpy as np
     
 class LineCollection(object):
     """

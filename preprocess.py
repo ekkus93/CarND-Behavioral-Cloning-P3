@@ -1,31 +1,43 @@
 import numpy as np
 import cv2
 from skimage import exposure
-from scipy.misc import imresize
+from scipy.misc import imresize as resize
 from line import *
 
-def crop_image(img, x0=0, y0=0, x1=None, y1=None):
-    if x1 is None:
-        x1 = img.shape[1]
-        
-    if y1 is None:
-        y1 = img.shape[0]
-    
-    return img[y0:y1, x0:x1, :]
-
-def apply_histogram_equalization(image):
-    gray_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    equalized_image = exposure.equalize_adapthist(gray_image)
-    
-    return (255.0*equalized_image).astype(np.uint8)
-
-def resize(img, size=(32, 32)):
-    return imresize(img, size=size)
-
 def normalize(img):
+    """
+    Normalize image by centering values around 0.0 with a range of -0.5 to 0.5.
+
+    Parameters
+    ----------
+    img: numpy array
+         Image to be normalized
+
+    Returns
+    -------
+    numpy array
+         Normalized image
+    """
     return img / 255.0 - 0.5
 
 def preprocess_image(img, size=(80, 160), apply_normalize=False):
+    """
+    Preprocess image
+
+    Parameters
+    ----------
+    img: numpy image array
+         Image to be preprocess
+    size: tuple of int
+         Height and width to be resized to 
+    apply_nomalize: bool
+         Set to False for displaying images
+
+    Returns
+    -------
+    numpy image array:
+         Preprocessed image
+    """
     _img = img
 
     lanes = find_lane3(_img)[:,:,0]
@@ -40,7 +52,24 @@ def preprocess_image(img, size=(80, 160), apply_normalize=False):
 
     return _img
 
-def preprocess_images(X, size=(32, 32), convert_to_rgb=False, apply_normalize=True):
+def preprocess_images(X, size=(32, 32), apply_normalize=True):
+    """
+    Preprocess image
+
+    Parameters
+    ----------
+    X: numpy array of images
+         Images to be preprocess
+    size: tuple of int
+         Height and width to be resized to 
+    apply_nomalize: bool
+         Set to False for displaying images
+
+    Returns
+    -------
+    numpy image array:
+         Preprocessed images
+    """    
     return np.array([preprocess_image(X[i], size=size, apply_normalize=apply_normalize) for i in range(X.shape[0])])
 
 def grayscale(img):

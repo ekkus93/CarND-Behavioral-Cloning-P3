@@ -35,11 +35,14 @@ My project includes the following files:
 
 * *model.py* containing the script to create and train the model
 * *preprocessing.py* containing common functions for preprocessing the image data for model.py and drive.py
-* *behavioral_cloning.py* containing helper functions for model.py
+* *behavioral_cloning.py* containing helper functions for *model.py*
+* *line.py* containing Line models for Hough transform in *preprocessing.py*
+* *preprocess.py* containing functions for preprocessing images of the track
 * *drive.py* for driving the car in autonomous mode
-* *model.h5* containing a trained convolution neural network 
+* *model.h5* containing a trained convolution neural network
 * *writeup.md* summarizing the results
-* *model_train.log* has the output of the training
+* *model_train.log* has the output of the training.
+* *run1.mp4* is a video of driving around the track autonomously.
 
 ## Running the model
 
@@ -58,9 +61,9 @@ The model.py file contains the code for training and saving the convolution neur
 
 The overall strategy for deriving a model architecture was to create a model to take the original RBG data of a single image with the addition of lane lines to predict a good steering angle.
 
-My first step was to use a VGG-style convolution neural network model. I thought this model might be appropriate because it is a pretty simple and reliable convolution neural network that I could build on.  By adding the lane lines with the preprocessing step, I didn't think it was necessary to use a more complicated model such as the NVIDIA model. Since the lane lines in the preprocessing step, the model doesn't need work so hard trying to extract the lane lines from the original images on its own.
+My first step was to use a VGG-style convolution neural network model. I thought this model might be appropriate because it is a pretty simple and reliable convolution model that I could build upon.  By adding the lane lines with the preprocessing step, I didn't think it was necessary to use a more complicated model such as the NVIDIA model. Since the lane lines were already extracted in the preprocessing step, the model didn't need work as hard trying to learn how to extract the lane line features from the original images on its own.
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
+In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my initial models had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. Also, when driving the car in autonomous mode with these initial models, the car would frequently cross over the lane lines or drive off the track.  
 
 To combat the overfitting, I did the following things adjust the model:
 
@@ -75,7 +78,7 @@ At the end of the process, the vehicle is able to drive autonomously around the 
 
 ### 2. Final Model Architecture
 
-My model consists of a VGG-style convolution neural network. (behavioral_cloning.py lines 100-142) The model includes leaky RELU layers to introduce nonlinearity. 
+My model consists of a VGG-style convolution neural network similar to what was described here in the Keras documentation under ["VGG-like convnet"](https://keras.io/getting-started/sequential-model-guide/). The model includes leaky RELU layers to introduce nonlinearity. I chose leaky RELU's over regular RELU's to try to avoid the dying RELU problem.
 
 | Layer Name       | Layer Type                 | Output Shape | 
 |:-----------------|:---------------------------|:-------------|
@@ -117,13 +120,11 @@ The total number of images collected was 18644.  The split of the data is:
 | Validation | 3728    |
 | Test       | 1866    |
 
-The model was trained for 20 epochs with a batch size of 32.  
-
 ### 4. Model parameter tuning
 
 The model used an adam optimizer, so the learning rate was not tuned manually (behavioral_cloning.py line 169).  The initial learning rate was 1e-4.
 
-The following other model parameters were tuned by trial and error:
+The other model parameters were tuned by trial and error. Different parameter configurations were run for 10 epochs with one tenth of the data. The parameters for the model with the best validation loss were chosen.
 
 | Parameter                                 | Variable Name  | Value       |
 |:------------------------------------------|:---------------|------------:|
@@ -131,12 +132,12 @@ The following other model parameters were tuned by trial and error:
 | Batch Size                                | batch_size     |     32      |
 | Number of nodes in fully connected layer  | num_fully_conn |    256      |
 | Dropout Keep Percentage                   | p              |    0.5      |
+| L2 Regulatization coefficent              | l              |   1e-6      |
 | Alpha for Leaky RELU                      | alpha          |   1e-6      |
-| Number of Training Epochs                 | epochs         |     20      |
- 
+
 ### 5. Appropriate training data
 
-Training data consists of recordings of driving the car around the track 4-5 times. This seemed to be a good amount of data for the model to use to generalize the track.  If at certain points along the track for a single loop was slightly off from manually driving the car, the model should be able to generalize what the correct steering angle should be from the laps around the track.
+Training data consists of recordings of driving the car around the track 4-5 times. This seemed to be a good amount of data for the model to use to generalize the track.  If at certain points along the track for a single loop was slightly off from manually driving the car, the model should be able to average what the correct steering angle should be from the laps around the track.
 
 #### Preprocessing Pipeline
 
@@ -160,7 +161,7 @@ The region of interest is a trapezoidal shape which narrows on top to the horizo
 Originally, I extracted the lane lines using a Canny filter and a Hough transform and merged them with the original image.  Below are images with the lane lines merged onto the original images of the track.  This is just to show that the lane lines are lined up well with the actual lane lines of the track. 
 ![][image4]
 
-Initially, I tried training the model with just the lane lines but there were places along the track which only had one lane line.  Using the lane lines alone wasn't enough information for the model to predict the correct steering angle.  In those cases, the car would just drive off the road.  Adding back the RBG layers gives the model more information for the model to try to make a correct prediction for the cases where the lane lines alone wasn't enough.
+Initially, I tried training the model with just the lane lines but there were places along the track which only had one lane line.  Using the lane lines alone wasn't enough information for the model to predict the correct steering angle.  In those cases, the car would just drive off the road after crossing the bridge.  Adding back the RBG layers gives the model more information for the model to try to make a correct prediction for the cases where the lane lines alone wasn't enough.
 
 I ended up adding the lane lines as a separate layer. I could have merged it with the original image of the track above.  Having it as a separate layer simplifies training by not having the model have to learn how to extract the lane lines from the merged image.
 ![][image3]
@@ -175,7 +176,7 @@ All pixel values were scaled to the range of -0.5 and 0.5 and centered around 0.
 
 #### Data Augmentation
 
-The data was augmented by randomly flipping the image to create a mirror image of the track. The steering angles were also flipped by multipling the steering angles by a -1.0.  Compared to just using the original, unflipped images, his helped the model better generalize the track.  The driving was much smoother with the car being better centered along the track.
+The data was augmented by randomly flipping the image to create a mirror image of the track. The steering angles were also flipped by multipling the steering angles by a -1.0.  Compared to just using the original, unflipped images, his helped the model better generalize the track.  Before data augmentation, the car would sometimes swerve a little outside of the lane lines.  After data augmentation, the driving was much smoother and better centered along the track.
 
 ## Training
 
@@ -183,7 +184,15 @@ The model was trained for 20 epochs.  The model with the best validation loss ou
 
 ![][image6]
 
-The training losses oscillate up and down from the validation losses. For the final epoch, the training loss is slightly below the validation loss which might suggest a little bit of overfitting. The model performs well autonomously driving along the track using *drive.py* though.  The validation loss and the test loss for the final model are consistent so we can assume that 0.0236 is a true representation of the loss for the model.
+The training loss line oscillate above and below the validation loss line. For the final epoch, the training loss is slightly below the validation loss which might suggest a little bit of overfitting. The model performs well autonomously driving along the track using *drive.py* though.  The validation loss and the test loss for the final model are consistent so we can assume that 0.0236 is a true representation of the loss for the model.
+
+## Conclusion
+
+The final model was tested with *drive.py*.  The model drove the car along the track for about 2 laps.  The video, *run1.mp4*, is a recording of the car driving along the track. The car drove well, centered along the track.  It didn't drive off the road at any point like in earlier models with lower number of training epochs and without data augmentation.
+
+I felt pretty confident that my model did a good job in generalizing driving around the track.  Still, the track that was used to test the final model was the same track where the training data was recorded from.  The model could have memorized parts or all of the track because the same track was used in both cases.  A similar but slightly different track should have been used for the test track.  That would have been a best test for the model.
+
+
 
 
 

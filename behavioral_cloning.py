@@ -27,12 +27,38 @@ import os
 from preprocess import *
 
 def parse_file_name(full_path):
+    """
+    Get filename without filepath
+
+    Parameters
+    ----------
+    full_path: str
+         Full path of a file
+
+    Returns
+    -------
+    str:
+         filename without filepath
+    """
     if '/' in full_path:
         return full_path.split('/')[-1]
     else:
         return full_path
 
 def load_data(data_dir):
+    """
+    Read driving_log.csv from data_dir into pandas DataFrame.
+
+    Parameters
+    ----------
+    data_dir: str
+         Path of directory where driving_log.csv is.
+
+    Returns
+    -------
+    pandas DataFrame:
+         The contents of driving_log.csv with image file names.
+    """
     colnames = ['center_img', 'left_img', 'right_img', 'steering_angle', 
                 'throttle', 'break', 'speed']
     driving_log_pd = pd.read_csv('%s/driving_log.csv' % data_dir, sep=',', names=colnames)
@@ -45,6 +71,26 @@ def load_data(data_dir):
 
 def display_images(X, start_idx=0, end_idx=None,  columns = 5, use_gray=False, 
                    apply_fnc=None, figsize=(32,18)):
+    """
+    Display a set of images
+
+    Parameters
+    ----------
+    X: numpy array of images
+         Images to be displayed
+    start_idx: int
+         Start index for images
+    end_idx: int
+         End index for images
+    columns: int
+         Number of columns of images
+    use_gray: bool
+         True for RGB images.  False for grayscale images.
+    apply_fnc: function
+         An function to apply to each image before displaying.
+    figsize: tuple of int
+         Display height and width of images.
+    """
     if end_idx is None:
         end_idx = X.shape[0]
         
@@ -72,6 +118,21 @@ def display_images(X, start_idx=0, end_idx=None,  columns = 5, use_gray=False,
     plt.show()
 
 def read_imgs(img_dir, file_names):
+    """
+    Read list of images from disk.
+
+    Parameters
+    ----------
+    img_dir: str
+         Directory of images.
+    file_names: list of str
+         List of image file names.
+
+    Returns
+    -------
+    numpy array of images:
+         Images from disk.
+    """
     img_arr = []
     
     for file_name in file_names:
@@ -81,6 +142,23 @@ def read_imgs(img_dir, file_names):
     return np.stack(img_arr)
 
 def split_train_test(img_steering_pd, train_perc=0.7, val_perc=0.2):
+    """
+    Randomly split data into train/val/test sets.
+
+    Parameters
+    ----------
+    img_steering_pd: pandas DataFrame
+         DataFrame with center_img and steering_angle.
+
+    Returns
+    -------
+    train_pd: pandas DataFrame
+         Training center_imgs and steering_angles.
+    val_pd: pandas DataFrame
+         Validation center_imgs and steering_angles.
+    test_pd: pandas DataFrame
+         Test center_imgs and steering_angles.
+    """
     idx_len = len(img_steering_pd.index)
     idxs = list(range(idx_len))
     shuffle(idxs)
@@ -95,6 +173,27 @@ def split_train_test(img_steering_pd, train_perc=0.7, val_perc=0.2):
     return train_pd, val_pd, test_pd
 
 def make_model(input_shape = (80, 160, 3), num_fully_conn=512, p = 0.5, l=1e-4, alpha=0.3):
+    """
+    Make VGG-like model with Keras.
+
+    Parametrs
+    ---------
+    input_shape: tuple of int
+        Tuple of height, width and channels.
+    num_fully_conn: int
+        Number of nodes in the final connected layer.
+    p: float
+        Dropout keep percentage
+    l: float
+        Coefficient for L2 regularization.
+    alpha: float
+        Alpha for leaky RELU.
+
+    Returns
+    -------
+    Keras model:
+       VGG-like model.
+    """
     model = Sequential()
 
     # conv block 1
@@ -139,14 +238,63 @@ def make_model(input_shape = (80, 160, 3), num_fully_conn=512, p = 0.5, l=1e-4, 
     return model
 
 def flip_imgs(imgs):
+    """
+    Flip images.
+
+    Parameters
+    ----------
+    imgs: numpy array of images
+          Images to flip.
+
+    Returns
+    -------
+    numpy array of images:
+          Flipped images with the same dimensions as imgs.
+    """
     flip_img_arr = [np.fliplr(imgs[i]) for i in range(imgs.shape[0])]
 
     return np.stack(flip_img_arr)
 
 def flip_y(y):
+    """
+    Flips steering angles.
+
+    Parameters
+    ----------
+    y: numpy array
+        Steering angles.
+
+    Returns
+    -------
+    numpy array:
+        All steering angles multiplied by -1.0.
+    """
     return -y
 
-def image_gen(X_files, y, batch_size, img_dir, size=(80, 160)): 
+def image_gen(X_files, y, batch_size, img_dir, size=(80, 160)):
+    """
+    Generator for dynamically creating training images.
+
+    Parameters
+    ----------
+    X_files: list of str
+         List of image files.
+    y: numpy array
+         Corresponding steering angles for each image in X_files.
+    batch_size: int
+         Number of images for each batch.
+    img_dir: string
+         Directory of image files.
+    size: tuple of int
+         Height and width for resizing images.
+
+    Returns
+    -------
+    curr_X: numpy array of images
+         Batch of images. The number of images is the same as the batch_size. 
+    curr_y: numpy array
+         Corresponding steering angles for curr_x. 
+    """
     X_len = len(X_files)
     idxs = list(range(X_len))
     
@@ -176,6 +324,38 @@ def image_gen(X_files, y, batch_size, img_dir, size=(80, 160)):
 
 def train_model(model, X_train_files, y_train, img_dir, X_val, y_val, callbacks, size=(80,160),
                 batch_size=32, lr=0.0001, epochs=10, workers=1, verbose=0):
+    """
+    Trains model.
+
+    Parameters
+    ----------
+    model: Keras Model
+         Model to be trained.
+    X_train_files: list of str
+         List of training files.
+    y_train: numpy array
+         Corresponding training steering angles for each image.
+    img_dir: str
+         Directory with training images.
+    X_val: numpy array of images
+         Validation images.
+    y_val: numpy array
+         Corresponding validation steering angles for each image.
+    callback: list of Keras Callbacks
+         Callbacks for fit_generator().
+    size: tuple of int
+         Height and width of resized images for image generator.
+    batch_size: int
+         Training batch size.
+    lt: float
+         Learning rate.
+    epochs: int
+         Number of training epochs.
+    workers: int
+         Number of workers for image generator.
+    verbose: int
+         Verbose setting for fit_generator().
+    """
     assert len(X_train_files) == y_train.shape[0]
     assert len(X_train_files) > 0
 
@@ -196,33 +376,3 @@ def train_model(model, X_train_files, y_train, img_dir, X_val, y_val, callbacks,
                         use_multiprocessing=True, callbacks=callbacks)   
     
     return model
-
-def weight_steering_angle(steering_angles, weights):
-    assert len(steering_angles) == len(weights)
-
-    num = sum([steering_angles[i]*weights[i] for i in range(len(steering_angles))])
-    denom = sum(weights)
-
-    return num/denom
-
-def smooth_steering_angle(img_steering_pd):
-    _img_steering_pd = img_steering_pd.copy()
-
-    mean_steering_angle_arr = []
-    weights = [0.125, 0.25, 0.5, 4.0, 0.5, 0.25, 0.125]
-    for i in range(len(_img_steering_pd.index)):
-        steering_angles = [0.0] * len(weights)
-
-        for j in range(-3, 3):
-            if i+j >= 0 and i+j < len(_img_steering_pd.index):
-                row = _img_steering_pd.iloc[i]
-                steering_angles[j] = row['steering_angle']
-
-        mean_steering_angle_arr.append(weight_steering_angle(steering_angles, weights))
-    
-    _img_steering_pd['mean_steering_angle'] = mean_steering_angle_arr
-    _img_steering_pd = _img_steering_pd.drop('steering_angle', 1)
-    _img_steering_pd.rename(mapper={'mean_steering_angle': 'steering_angle'},
-                                    axis='columns', inplace=True)
-    
-    return _img_steering_pd

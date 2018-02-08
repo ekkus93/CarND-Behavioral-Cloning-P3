@@ -29,6 +29,25 @@ from behavioral_cloning import *
 data_dir = 'data'
 
 def load_split_data(data_dir):
+    """
+    Randomly splits data into train/validation/test and save pickle files of them.
+    If the pickle files already exist, load the pickle files instead of resplitting the data. 
+
+    Parameters
+    ----------
+    data_dir: str
+        The data directory must contain the following file:
+        * driving_log.csv
+    
+    Returns
+    -------
+    train_pd : pandas DataFrame
+        Training Data
+    val_pd : pandas DataFrame
+        Validation Data
+    test_pd : pandas DataFrame
+        Test Data
+    """
     train_pd_file = '%s/train.p' % data_dir
     val_pd_file = '%s/val.p' % data_dir
     test_pd_file = '%s/test.p' % data_dir
@@ -48,12 +67,51 @@ def load_split_data(data_dir):
     return train_pd, val_pd, test_pd
 
 def preprocess_Xy_data(Xy_pd, img_dir, size=(80, 160)):
+    """
+    Preprocesses image and steering angle data for training.
+
+    Parameters
+    ----------
+    Xy_pd: pandas DataFrame
+         Contains file names for raw images and steering angles
+    img_dir: str
+         The directory of the raw images
+    size: tuple
+         A tuple of height and width
+
+    Returns
+    -------
+    _X: numpy array
+         Preprocessed images
+    _y: numpy array
+         Coresponding steering angles
+
+    """
     _X = preprocess_images(read_imgs(img_dir, Xy_pd['center_img'].tolist()), size=size, apply_normalize=True)
     _y = np.array(Xy_pd['steering_angle'])
 
     return _X, _y
 
 def predict_from_files(model, img_dir, X_files, size=(80,160), batch_size=32):
+    """
+    Predict steering angle a list of image files
+
+    Parameters
+    ----------
+    model: Keras Model
+         A trained model for predicting the steering angle from an image
+    img_dir: string
+         The directory of the images
+    X_files: list of str
+         A list of image file names in img_dir
+    size: tuple
+         A tuple of height and width for resizing the images during preprocessing
+
+    Returns
+    -------
+    y_hat: numpy array
+         An array of predicted steering angles.
+    """
     y_hat_arr = []
 
     for i in range(0, len(X_files), batch_size):
@@ -87,6 +145,7 @@ def main():
     # ## Model
     model_file = '%s/model.h5' % data_dir
 
+    # model parameters
     batch_size = 32
     workers=7
 
