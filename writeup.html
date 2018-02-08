@@ -333,6 +333,7 @@ $(document).ready(function () {
 <li><em>model.py</em> containing the script to create and train the model</li>
 <li><em>preprocessing.py</em> containing common functions for preprocessing the image data for model.py and drive.py</li>
 <li><em>behavioral_cloning.py</em> containing helper functions for <em>model.py</em></li>
+<li><em>line.py</em> containing Line models for Hough transform in <em>preprocessing.py</em></li>
 <li><em>preprocess.py</em> containing functions for preprocessing images of the track</li>
 <li><em>drive.py</em> for driving the car in autonomous mode</li>
 <li><em>model.h5</em> containing a trained convolution neural network</li>
@@ -614,7 +615,7 @@ $(document).ready(function () {
 <section id="conclusion" class="level2">
 <h2>Conclusion</h2>
 <p>The final model was tested with <em>drive.py</em>. The model drove the car along the track for about 2 laps. The video, <em>run1.mp4</em>, is a recording of the car driving along the track. The car drove well, centered along the track. It didn’t drive off the road at any point like in earlier models with lower number of training epochs and without data augmentation.</p>
-<p>I felt pretty confident that my model did a good job in generalizing driving around the track. Still, the track that was used to test the final model was the same track where the training data was recorded from. The model could have memorized parts or all of the track. A similar but slightly different track should have been used for the test track.</p>
+<p>I felt pretty confident that my model did a good job in generalizing driving around the track. Still, the track that was used to test the final model was the same track where the training data was recorded from. The model could have memorized parts or all of the track because the same track was used in both cases. A similar but slightly different track should have been used for the test track. That would have been a best test for the model.</p>
 </section>
 </section>
 
