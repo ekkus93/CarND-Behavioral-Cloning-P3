@@ -178,6 +178,9 @@ def main():
     model = load_model(model_file)
     test_loss = model.evaluate(X_test, y_test, verbose=verbose)
     print("test loss: %3f" % test_loss)
+
+    # clear the session manually
+    K.clear_session()
     
 if __name__ == "__main__":
     main()
